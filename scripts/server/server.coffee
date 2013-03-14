@@ -15,6 +15,6 @@ app.get "/", (req, res)->
 	res.render("index") 
 	console.log("rendering index")
 
-port = 5560
+port = process.env.PORT||5560
 server= app.listen(port)
 console.log("server listens to port "+ port)
