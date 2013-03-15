@@ -23,6 +23,9 @@ class Network
         createjs.Ticker.addEventListener "tick", (ev)=>
             @stage.update()
         
+        socket=io.connect "http://secret-archer.lhk.c9.io"
+        socket.on "NEWS", (data)->
+            alert data.news
         
         window.onmousedown= (ev)=>
             alert "click"

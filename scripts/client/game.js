@@ -13,7 +13,7 @@
     Network.prototype.gameObjects = [];
 
     function Network() {
-      var canvas,
+      var canvas, socket,
         _this = this;
       this.spawn = function(data) {
         return Network.prototype.spawn.apply(_this, arguments);
@@ -33,6 +33,10 @@
       createjs.Ticker.addEventListener("tick", function(ev) {
         return _this.stage.update();
       });
+      socket = io.connect("http://secret-archer.lhk.c9.io");
+      socket.on("NEWS", function(data) {
+        return alert(data.news);
+      });
       window.onmousedown = function(ev) {
         var mx, my;
         alert("click");
@@ -47,15 +51,11 @@
 
     Network.prototype.spawn = function(data) {
       var shape, x, y;
-      alert("rpcspawn");
       x = data.x;
       y = data.y;
-      alert(" " + x + y);
       shape = new createjs.Shape();
       shape.graphics.beginFill("#555");
       shape.graphics.drawRect(x - 25, y - 25, 50, 50);
-      alert(shape);
-      alert(this.stage);
       this.stage.addChild(shape);
       return this.stage.update();
     };

@@ -15,6 +15,16 @@ app.get "/", (req, res)->
 	res.render("index") 
 	console.log("rendering index")
 
-port = process.env.PORT||5560
+port = process.env.PORT or 5560
 server= app.listen(port)
 console.log("server listens to port "+ port)
+
+
+
+io=require("socket.io").listen(server)
+io.sockets.on "connection", (socket)->
+    console.log "connection"
+    socket.emit "NEWS", {news:"someone has joined us"}
+    
+    socket.on "disconnect", ()->
+        io.sockets.emit "NEWS", {news:"someone has left us"}
