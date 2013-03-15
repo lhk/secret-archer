@@ -33,18 +33,44 @@
       createjs.Ticker.addEventListener("tick", function(ev) {
         return _this.stage.update();
       });
-      socket = io.connect("http://secret-archer.lhk.c9.io");
+      socket = io.connect("localhost");
       socket.on("NEWS", function(data) {
         return alert(data.news);
       });
+      socket.on("RPCSPAWN", function(data) {
+        alert("RPCSPAWN");
+        return _this.spawn(data);
+      });
+      socket.on("RPCMOVE", function(data) {
+        var id, object, tag, x, y, _i, _len, _ref, _results;
+        alert("RPCMOVE");
+        id = data.id;
+        tag = data.tag;
+        x = data.x;
+        y = data.y;
+        _ref = _this.gameObjects;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          object = _ref[_i];
+          if (object.id === id && object.tag === tag) {
+            object.x = x;
+            object.y = y;
+            object.shape.x = x;
+            _results.push(object.shape.y = y);
+          } else {
+            _results.push(void 0);
+          }
+        }
+        return _results;
+      });
       window.onmousedown = function(ev) {
         var mx, my;
-        alert("click");
         mx = _this.stage.mouseX;
         my = _this.stage.mouseY;
-        return _this.spawn({
+        return socket.emit("RPCSPAWNREQUEST", {
           x: mx,
-          y: my
+          y: my,
+          tag: 0
         });
       };
     }
@@ -55,9 +81,19 @@
       y = data.y;
       shape = new createjs.Shape();
       shape.graphics.beginFill("#555");
-      shape.graphics.drawRect(x - 25, y - 25, 50, 50);
+      shape.graphics.drawRect(-25, -25, 50, 50);
       this.stage.addChild(shape);
-      return this.stage.update();
+      this.stage.update();
+      this.gameObjects.push({
+        shape: shape,
+        x: x,
+        y: y,
+        tag: data.tag,
+        id: data.id
+      });
+      shape.x = x;
+      shape.y = y;
+      return alert("" + data.id + "," + data.tag);
     };
 
     return Network;

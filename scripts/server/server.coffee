@@ -30,6 +30,8 @@ io.sockets.on "connection", (socket)->
     socket.on "RPCSPAWNREQUEST", (data)->
         socket.emit "RPCSPAWN", {x:data.x, y:data.y, tag:data.tag, id:ids++}
         console.log {x:data.x, y:data.y, tag:data.tag, id:ids}
+
+    # socket.emit "RPCMOVE", {tag:0, id:ids-1, x: 500, y:500}
     
     socket.on "disconnect", ()->
         io.sockets.emit "NEWS", {news:"someone has left us"}
