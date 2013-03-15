@@ -27,11 +27,15 @@ class Network
         socket.on "NEWS", (data)->
             alert data.news
         
+        socket.on "RPCSPAWN", (data)=>
+            @spawn(data)
+        
         window.onmousedown= (ev)=>
             alert "click"
             mx=@stage.mouseX
             my=@stage.mouseY
-            @spawn({x:mx,y:my})
+            socket.emit "RPCSPAWNREQUEST", (x:mx, y:my, tag:0)
+            @spawn({x:mx,y:my, tag:0, id:0})
             
     spawn: (data)=>
         x=data.x
@@ -43,3 +47,5 @@ class Network
         shape.graphics.drawRect(x-25,y-25,50,50)
         @stage.addChild(shape)
         @stage.update()
+        
+        @gameObjects.push({shape:shape, x:x, y:y, tag:data.tag, id:data.id})
