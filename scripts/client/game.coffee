@@ -25,6 +25,10 @@ class Network
         
         socket=io.connect "localhost"
 
+        socket.on "CONNECTED", (data)=>
+            alert "connected with clientId"+data.clientId
+            @selfId=data.clientId
+
         socket.on "NEWS", (data)->
             alert data.news
         
@@ -50,7 +54,7 @@ class Network
         window.onmousedown= (ev)=>
             mx=@stage.mouseX
             my=@stage.mouseY
-            socket.emit "RPCSPAWNREQUEST", (x:mx, y:my, tag:0)
+            socket.emit "RPCSPAWNREQUEST", (x:mx, y:my, tag:0, clientId:@selfId)
             
     spawn: (data)=>
         x=data.x
