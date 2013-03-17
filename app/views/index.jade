@@ -4,9 +4,9 @@ html
         title secret archer
         script(src="/socket.io/socket.io.js")
         script(src="http://code.jquery.com/jquery-1.9.1.min.js")
-        script(src="../public/javascripts/app.js", defer, onload="require('initialize');")
+        script(src="../public/javascripts/app.js")
+        require("client/game")
         script(src="http://code.createjs.com/easeljs-0.6.0.min.js")
     body
         h1 Coffeescript HTML
         canvas#Canvas(style="width:1000px; height:1000px")
-

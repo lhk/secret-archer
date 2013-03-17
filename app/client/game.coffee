@@ -1,7 +1,9 @@
-$(window).load ->
-    net = new Network()
-    
+module.exports = class Application
+    init: ->
+       net = new Network()
 
+$ ->
+     n = new Network
 class Network
     gameObjects:[]
     constructor: ->

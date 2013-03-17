@@ -5,10 +5,10 @@ app = express();
 
 console.log("express created")
 
-app.use(express.static(__dirname+"../../../"))
+app.use(express.static(__dirname))
 console.log("static server runs")
 
-app.set("views", __dirname+"../../../views/")
+app.set("views", __dirname+"/views/")
 
 app.set("view engine", "jade")
 console.log("view engine set up")
