@@ -1,1 +1,1 @@
-sh init.sh
+bash init.sh
