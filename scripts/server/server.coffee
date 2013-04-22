@@ -28,7 +28,7 @@ class Game
     clients:0
     ids:0
     constructor: ->
-        @gameObjects.push new Factory(0,1,1,0,0)
+        #@gameObjects.push new Factory(0,1,1,0,0, this)
         prev=Date.now()
         now=Date.now()
         setInterval ()=>
@@ -56,10 +56,10 @@ class Game
         clientId=data.clientId
         x=data.x
         y=data.y
-
+        #console.log this
         switch tag
-            when 0 then object = new Factory(tag, id, clientId,x,y)
-            when 1 then console.log "robots are not implemented yet"
+            when 0 then object = new Factory(tag, id, clientId,x,y, this)
+            when 1 then object = new Robot(tag, id, clientId, x, y, this)
         @gameObjects.push object
 
         @players.forEach (player)->
@@ -68,15 +68,38 @@ class Game
 
 
 class Factory
-    constructor:(tag, id, clientId, x, y)->
+    delay = 300
+    prev = 0
+    current = 0
+    constructor:(tag, id, clientId, x, y, game)->
         @tag=tag
         @id=id
         @clientId=clientId
         @x=x
         @y=y
+        @game=game
+        #console.log game
     update:(deltaTime)=>
-        #console.log "updating a factory"
+        current +=deltaTime
+        if current > prev + delay
+            @game.requestSpawn({tag:1, clientId:@clientId, x:@x, y:@y})
+            prev=current
+        prev=current
 
+class Robot
+    constructor:(tag, id, clientId, x, y, game)->
+        @tag=tag
+        @id=id
+        @clientId=clientId
+        @x=x
+        @y=y
+        @game=game
+        console.log game
+    update:(deltaTime)=>
+        enemies=@game.gameObjects.filter (x) => x.clientId!=@clientId
+        if enemies.length > 0
+            target = enemies.reduce (a,b)-> Math.min Math.pow(@x-a.x,2)+Math.pow(@y-a.y,2), Math.pow(@x-b.x,2)+Math.pow(@y-b.y,2)
+            console.log "targeting"
 game= new Game()
 
 #STEP 3: handle communication

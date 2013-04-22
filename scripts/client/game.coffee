@@ -12,13 +12,6 @@ class Network
         @stage= new createjs.Stage(canvas)
         alert(@stage)
         
-        @testshape= new createjs.Shape()
-        @testshape.graphics.beginFill("#951")
-        @testshape.graphics.drawRect(50,50,50,50)
-        
-        @stage.addChild(@testshape)
-        @stage.update()
-        
         createjs.Ticker.setFPS(20);
         createjs.Ticker.addEventListener "tick", (ev)=>
             @stage.update()
