@@ -80,6 +80,7 @@ class Factory
         @game=game
         #console.log game
     update:(deltaTime)=>
+        console.log "update"
         current +=deltaTime
         if current > prev + delay
             @game.requestSpawn({tag:1, clientId:@clientId, x:@x, y:@y})
