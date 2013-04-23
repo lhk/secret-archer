@@ -60,10 +60,10 @@ class Game
         switch tag
             when 0 then object = new Factory(tag, id, clientId,x,y, this)
             when 1 then object = new Robot(tag, id, clientId, x, y, this)
-        @gameObjects.push object
+        @gameObjects[id]= object
 
         @players.forEach (player)->
-            player.emit "RPCSPAWN", data
+            player.emit("RPCSPAWN", {tag:tag, id:id, clientId:clientId, x:x, y:y})
 
 
 
@@ -95,12 +95,18 @@ class Robot
         @x=x
         @y=y
         @game=game
+        @speed = 1
         console.log game
     update:(deltaTime)=>
         enemies=@game.gameObjects.filter (x) => x.clientId!=@clientId
         if enemies.length > 0
-            target = enemies.reduce (a,b)-> Math.min Math.pow(@x-a.x,2)+Math.pow(@y-a.y,2), Math.pow(@x-b.x,2)+Math.pow(@y-b.y,2)
+            enemies.sort (a,b)->
+                if Math.pow(@x-a.x,2)+Math.pow(@y-a.y,2)>Math.pow(@x-b.x,2)+Math.pow(@y-b.y,2) then 1 else -1
+            target=enemies[0]
             console.log "targeting"
+            console.log target.clientId
+
+
 game= new Game()
 
 #STEP 3: handle communication

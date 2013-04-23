@@ -77,13 +77,31 @@
     }
 
     Network.prototype.spawn = function(data) {
-      var shape, x, y;
+      var id, shape, tag, x, y;
 
       x = data.x;
       y = data.y;
+      id = data.id;
+      tag = data.tag;
       shape = new createjs.Shape();
-      shape.graphics.beginFill("#555");
-      shape.graphics.drawRect(-25, -25, 50, 50);
+      switch (tag) {
+        case 0:
+          alert("0");
+          break;
+        case 1:
+          alert("1");
+      }
+      if (tag === 0) {
+        alert("factory");
+        shape.graphics.beginFill("#555");
+        shape.graphics.drawRect(-25, -25, 50, 50);
+      } else if (tag === 1) {
+        alert("robot");
+        shape.graphics.beginFill("#000");
+        shape.graphics.drawRect(-5, -5, 10, 10);
+      } else {
+        alert("someone messed up the tags. remember that mines are not implemented on the client yet.");
+      }
       this.stage.addChild(shape);
       this.stage.update();
       this.gameObjects.push({
@@ -95,7 +113,7 @@
       });
       shape.x = x;
       shape.y = y;
-      return alert("" + data.id + "," + data.tag);
+      return alert("id " + data.id + ", tag " + data.tag);
     };
 
     return Network;

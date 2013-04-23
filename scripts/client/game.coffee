@@ -53,14 +53,27 @@ class Network
         x=data.x
         y=data.y
         
-        
+        id=data.id
+        tag=data.tag
+
         shape= new createjs.Shape()
-        shape.graphics.beginFill("#555")
-        shape.graphics.drawRect(-25,-25,50,50)
+        switch tag
+            when 0 then alert "0"
+            when 1 then alert "1"
+        if tag == 0
+            alert "factory"
+            shape.graphics.beginFill("#555")
+            shape.graphics.drawRect(-25,-25,50,50)
+        else if tag == 1
+            alert "robot"
+            shape.graphics.beginFill("#000")
+            shape.graphics.drawRect(-5,-5,10,10)
+        else
+            alert "someone messed up the tags. remember that mines are not implemented on the client yet."
         @stage.addChild(shape)
         @stage.update()
         
         @gameObjects.push({shape:shape, x:x, y:y, tag:data.tag, id:data.id})
         shape.x=x
         shape.y=y
-        alert ""+data.id+","+data.tag
+        alert "id "+data.id+", tag "+data.tag
