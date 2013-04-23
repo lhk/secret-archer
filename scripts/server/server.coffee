@@ -68,9 +68,6 @@ class Game
 
 
 class Factory
-    delay = 300
-    prev = 0
-    current = 0
     constructor:(tag, id, clientId, x, y, game)->
         @tag=tag
         @id=id
@@ -78,14 +75,17 @@ class Factory
         @x=x
         @y=y
         @game=game
+        @delay = 300
+        @prev = 0
+        @current = 0
         #console.log game
     update:(deltaTime)=>
         console.log "update"
-        current +=deltaTime
-        if current > prev + delay
+        @current +=deltaTime
+        if @current > @prev + @delay
+            console.log "spawning"
             @game.requestSpawn({tag:1, clientId:@clientId, x:@x, y:@y})
-            prev=current
-        prev=current
+            @prev=@current
 
 class Robot
     constructor:(tag, id, clientId, x, y, game)->
