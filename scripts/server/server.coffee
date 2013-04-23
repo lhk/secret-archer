@@ -21,6 +21,55 @@ port = process.env.PORT or 5560
 server= app.listen(port)
 console.log("server listens to port "+ port)
 
+class Vector2
+    constructor:(x,y)->
+        @x=x
+        @y=y
+
+    length:()->
+        return length=Math.sqrt(Math.pow(@x,2)+Math.pow(@y,2))
+
+    add:(v)->
+        @x+=v.x
+        @y+=v.y
+        return this
+
+    sub:(v)->
+        @x-=v.x
+        @y-=v.y
+        return this
+
+    mul:(scalar)->
+        @x*=scalar
+        @y*=scalar
+        return this
+
+    div:(scalar)->
+        @x/=scalar
+        @y/=scalar
+        return this
+
+    #the functional versions don't modify the original
+    funcMul:(scalar)->
+        v=new Vector2(@x,@y)
+        v.mul(scalar)
+        return v
+
+    funcDiv:(scalar)->
+        v=new Vector2(@x,@y)
+        v.div(scalar)
+        return v
+
+    normalize:()->
+        @x/=@length()
+        @y/=@length()
+        return this
+
+    funcNormalize:()->
+        v=new Vector2(@x,@y)
+        v.div(v.length)
+        return v
+
 
 class Game
     gameObjects:[]
