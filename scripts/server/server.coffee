@@ -21,6 +21,7 @@ port = process.env.PORT or 5560
 server= app.listen(port)
 console.log("server listens to port "+ port)
 
+#my beloved vector class
 class Vector2
     constructor:(x,y)->
         @x=x
@@ -50,15 +51,23 @@ class Vector2
         return this
 
     #the functional versions don't modify the original
+    funcAdd:(v)->
+        res = new Vector2(@x+v.x, @y+v.y)
+        return res
+
+    funcSub:(v)->
+        res = new Vector2(@x-v.x, @y-v.y)
+        return res
+
     funcMul:(scalar)->
-        v=new Vector2(@x,@y)
-        v.mul(scalar)
-        return v
+        res=new Vector2(@x,@y)
+        res.mul(scalar)
+        return res
 
     funcDiv:(scalar)->
-        v=new Vector2(@x,@y)
-        v.div(scalar)
-        return v
+        res=new Vector2(@x,@y)
+        res.div(scalar)
+        return res
 
     normalize:()->
         @x/=@length()
@@ -66,11 +75,11 @@ class Vector2
         return this
 
     funcNormalize:()->
-        v=new Vector2(@x,@y)
-        v.div(v.length)
-        return v
+        res=new Vector2(@x,@y)
+        res.div(res.length)
+        return res
 
-
+#this is a singleton with two functions: Storing all game related data and managing communication
 class Game
     gameObjects:[]
     players:[]
@@ -113,11 +122,23 @@ class Game
 
         @players.forEach (player)->
             player.emit("RPCSPAWN", {tag:tag, id:id, clientId:clientId, x:x, y:y})
+    requestMove:(id, x, y)=>
+        gameObject= @gameObjects[id]
+        gameObject.x= x
+        gameObject.y= y
+        tag=gameObject.tag
+        clientId=gameObject.clientId
+        @players.forEach (player)->
+            player.emit("RPCMOVE",{tag:tag, id:id, clientId:clientId, x:x, y:y})
 
 
-
+#nothing new here
 class Factory
     constructor:(tag, id, clientId, x, y, game)->
+        #coffeescript is, like python, completely dynamic.
+        #all the properties are created as they are accessed.
+        #@ replaces self
+        #be wary of typos. No way to catch them. The program just crashes silently
         @tag=tag
         @id=id
         @clientId=clientId
@@ -127,14 +148,20 @@ class Factory
         @delay = 300
         @prev = 0
         @current = 0
+        @once=true
         #console.log game
+
     update:(deltaTime)=>
-        console.log "update"
+        '''console.log "update"
         @current +=deltaTime
         if @current > @prev + @delay
             console.log "spawning"
             @game.requestSpawn({tag:1, clientId:@clientId, x:@x, y:@y})
             @prev=@current
+        '''
+        if @once
+            @once=false
+            @game.requestSpawn({tag:1, clientId:@clientId, x:@x, y:@y})
 
 class Robot
     constructor:(tag, id, clientId, x, y, game)->
@@ -147,13 +174,31 @@ class Robot
         @speed = 1
         console.log game
     update:(deltaTime)=>
+        #get a list of all gameObjects from the game singleton
+        #filter the list for objects with a different clientId
+        #those are the enemies
         enemies=@game.gameObjects.filter (x) => x.clientId!=@clientId
         if enemies.length > 0
+            #now sort by distance
             enemies.sort (a,b)->
                 if Math.pow(@x-a.x,2)+Math.pow(@y-a.y,2)>Math.pow(@x-b.x,2)+Math.pow(@y-b.y,2) then 1 else -1
             target=enemies[0]
-            console.log "targeting"
-            console.log target.clientId
+
+            #a little vector math to get the new position
+            #first the robots position is converted to a vector
+            pos=new Vector2(@x,@y)
+            console.log pos
+            tar=new Vector2(target.x, target.y)
+            console.log tar
+            diff= tar.funcSub(pos)
+            console.log diff
+            diff.normalize()
+            diff.mul(@speed)
+            pos.add(diff.mul(deltaTime/1000))
+
+            @game.requestMove(@id,pos.x,pos.y)
+            @x=pos.x
+            @y=pos.y
 
 
 game= new Game()

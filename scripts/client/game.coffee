@@ -30,7 +30,7 @@ class Network
             @spawn(data)
 
         socket.on "RPCMOVE", (data)=>
-            alert "RPCMOVE"
+            #alert "RPCMOVE"
             #parse the message
             id= data.id
             tag= data.tag
@@ -57,15 +57,12 @@ class Network
         tag=data.tag
 
         shape= new createjs.Shape()
-        switch tag
-            when 0 then alert "0"
-            when 1 then alert "1"
         if tag == 0
-            alert "factory"
+            #alert "factory"
             shape.graphics.beginFill("#555")
             shape.graphics.drawRect(-25,-25,50,50)
         else if tag == 1
-            alert "robot"
+            #alert "robot"
             shape.graphics.beginFill("#000")
             shape.graphics.drawRect(-5,-5,10,10)
         else
@@ -76,4 +73,4 @@ class Network
         @gameObjects.push({shape:shape, x:x, y:y, tag:data.tag, id:data.id})
         shape.x=x
         shape.y=y
-        alert "id "+data.id+", tag "+data.tag
+        #alert "id "+data.id+", tag "+data.tag

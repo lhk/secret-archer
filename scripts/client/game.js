@@ -42,7 +42,6 @@
       socket.on("RPCMOVE", function(data) {
         var id, object, tag, x, y, _i, _len, _ref, _results;
 
-        alert("RPCMOVE");
         id = data.id;
         tag = data.tag;
         x = data.x;
@@ -84,19 +83,10 @@
       id = data.id;
       tag = data.tag;
       shape = new createjs.Shape();
-      switch (tag) {
-        case 0:
-          alert("0");
-          break;
-        case 1:
-          alert("1");
-      }
       if (tag === 0) {
-        alert("factory");
         shape.graphics.beginFill("#555");
         shape.graphics.drawRect(-25, -25, 50, 50);
       } else if (tag === 1) {
-        alert("robot");
         shape.graphics.beginFill("#000");
         shape.graphics.drawRect(-5, -5, 10, 10);
       } else {
@@ -112,8 +102,7 @@
         id: data.id
       });
       shape.x = x;
-      shape.y = y;
-      return alert("id " + data.id + ", tag " + data.tag);
+      return shape.y = y;
     };
 
     return Network;
