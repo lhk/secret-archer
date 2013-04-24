@@ -27,6 +27,10 @@
       createjs.Ticker.addEventListener("tick", function(ev) {
         return _this.stage.update();
       });
+      this.robotContainer = new createjs.Container();
+      this.factoryContainer = new createjs.Container();
+      this.stage.addChild(this.factoryContainer);
+      this.stage.addChild(this.robotContainer);
       socket = io.connect("localhost");
       socket.on("CONNECTED", function(data) {
         alert("connected with clientId" + data.clientId);
@@ -86,13 +90,14 @@
       if (tag === 0) {
         shape.graphics.beginFill("#555");
         shape.graphics.drawRect(-25, -25, 50, 50);
+        this.factoryContainer.addChild(shape);
       } else if (tag === 1) {
         shape.graphics.beginFill("#000");
         shape.graphics.drawRect(-5, -5, 10, 10);
+        this.robotContainer.addChild(shape);
       } else {
         alert("someone messed up the tags. remember that mines are not implemented on the client yet.");
       }
-      this.stage.addChild(shape);
       this.stage.update();
       this.gameObjects.push({
         shape: shape,

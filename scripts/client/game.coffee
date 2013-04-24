@@ -15,6 +15,13 @@ class Network
         createjs.Ticker.setFPS(20);
         createjs.Ticker.addEventListener "tick", (ev)=>
             @stage.update()
+
+        @robotContainer= new createjs.Container()
+        @factoryContainer= new createjs.Container()
+
+        @stage.addChild(@factoryContainer)
+        
+        @stage.addChild(@robotContainer)
         
         socket=io.connect "localhost"
 
@@ -61,13 +68,15 @@ class Network
             #alert "factory"
             shape.graphics.beginFill("#555")
             shape.graphics.drawRect(-25,-25,50,50)
+            @factoryContainer.addChild(shape)
         else if tag == 1
             #alert "robot"
             shape.graphics.beginFill("#000")
             shape.graphics.drawRect(-5,-5,10,10)
+            @robotContainer.addChild(shape)
         else
             alert "someone messed up the tags. remember that mines are not implemented on the client yet."
-        @stage.addChild(shape)
+        #@stage.addChild(shape)
         @stage.update()
         
         @gameObjects.push({shape:shape, x:x, y:y, tag:data.tag, id:data.id})

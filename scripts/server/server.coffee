@@ -194,7 +194,7 @@ class Robot
             console.log diff
             diff.normalize()
             diff.mul(@speed)
-            pos.add(diff.mul(deltaTime/1000))
+            pos.add(diff.mul(deltaTime/100))
 
             @game.requestMove(@id,pos.x,pos.y)
             @x=pos.x
