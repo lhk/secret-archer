@@ -14,15 +14,13 @@
 
     function Network() {
       this.spawn = __bind(this.spawn, this);
-      var canvas, socket,
+      var bitMap, canvas, socket,
         _this = this;
 
       canvas = document.getElementById("Canvas");
-      alert(canvas);
       canvas.width = 1000;
       canvas.height = 1000;
       this.stage = new createjs.Stage(canvas);
-      alert(this.stage);
       createjs.Ticker.setFPS(20);
       createjs.Ticker.addEventListener("tick", function(ev) {
         return _this.stage.update();
@@ -31,6 +29,10 @@
       this.factoryContainer = new createjs.Container();
       this.stage.addChild(this.factoryContainer);
       this.stage.addChild(this.robotContainer);
+      bitMap = new createjs.Bitmap("images/capitol.png");
+      bitMap.scaleX = 0.1;
+      bitMap.scaleY = 0.1;
+      this.stage.addChild(bitMap);
       socket = io.connect("localhost");
       socket.on("CONNECTED", function(data) {
         alert("connected with clientId" + data.clientId);
@@ -80,34 +82,42 @@
     }
 
     Network.prototype.spawn = function(data) {
-      var id, shape, tag, x, y;
+      var bitMap, id, tag, x, y;
 
+      alert("spawn");
       x = data.x;
       y = data.y;
       id = data.id;
       tag = data.tag;
-      shape = new createjs.Shape();
+      bitMap = null;
       if (tag === 0) {
-        shape.graphics.beginFill("#555");
-        shape.graphics.drawRect(-25, -25, 50, 50);
-        this.factoryContainer.addChild(shape);
+        bitMap = new createjs.Bitmap("images/gears.png");
+        bitMap.regX = 25;
+        bitMap.regY = 25;
+        bitMap.scaleX = 0.1;
+        bitMap.scaleY = 0.1;
+        this.factoryContainer.addChild(bitMap);
       } else if (tag === 1) {
-        shape.graphics.beginFill("#000");
-        shape.graphics.drawRect(-5, -5, 10, 10);
-        this.robotContainer.addChild(shape);
+        bitMap = new createjs.Bitmap("images/vintage-robot.png");
+        bitMap.regX = 10;
+        bitMap.regY = 10;
+        bitMap.scaleX = 0.04;
+        bitMap.scaleY = 0.04;
+        this.robotContainer.addChild(bitMap);
       } else {
         alert("someone messed up the tags. remember that mines are not implemented on the client yet.");
       }
       this.stage.update();
-      this.gameObjects.push({
-        shape: shape,
+      bitMap.x = x;
+      bitMap.y = y;
+      return this.gameObjects.push({
+        shape: bitMap,
         x: x,
         y: y,
         tag: data.tag,
-        id: data.id
+        id: data.id,
+        clientId: data.clientId
       });
-      shape.x = x;
-      return shape.y = y;
     };
 
     return Network;
