@@ -180,8 +180,8 @@ class Robot
         enemies=@game.gameObjects.filter (x) => x.clientId!=@clientId
         if enemies.length > 0
             #now sort by distance
-            enemies.sort (a,b)->
-                if Math.pow(@x-a.x,2)+Math.pow(@y-a.y,2)>Math.pow(@x-b.x,2)+Math.pow(@y-b.y,2) then 1 else -1
+            #enemies.sort (a,b)->
+            #    if Math.pow(@x-a.x,2)+Math.pow(@y-a.y,2)>Math.pow(@x-b.x,2)+Math.pow(@y-b.y,2) then 1 else -1
             target=enemies[0]
 
             #a little vector math to get the new position
