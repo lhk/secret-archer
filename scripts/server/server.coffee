@@ -179,11 +179,15 @@ class Robot
         #those are the enemies
         enemies=@game.gameObjects.filter (x) => x.clientId!=@clientId
         if enemies.length > 0
-            #now sort by distance
-            #enemies.sort (a,b)->
-            #    if Math.pow(@x-a.x,2)+Math.pow(@y-a.y,2)>Math.pow(@x-b.x,2)+Math.pow(@y-b.y,2) then 1 else -1
+            #find the closest enemy
             target=enemies[0]
-
+            dist=Math.pow(@x-target.x,2)+Math.pow(@y-target.y,2)
+            #take a close look at the pythonesque slicing
+            for enemy in enemies[1..]
+                newdist=Math.pow(@x-enemy.x,2)+Math.pow(@y-enemy.y,2)
+                if newdist < dist
+                    target = enemy
+                    dist = newdist
             #a little vector math to get the new position
             #first the robots position is converted to a vector
             pos=new Vector2(@x,@y)
