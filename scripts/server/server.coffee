@@ -79,6 +79,7 @@ class Vector2
         res.div(res.length)
         return res
 
+Array::remove = (t) -> @[t..t] = []
 #this is a singleton with two functions: Storing all game related data and managing communication
 class Game
     gameObjects:[]
@@ -131,6 +132,13 @@ class Game
         @players.forEach (player)->
             player.emit("RPCMOVE",{tag:tag, id:id, clientId:clientId, x:x, y:y})
 
+    requestAttack:(aId, aClientId, vId, vClientId)->
+        attacker=@gameObjects[aId]
+        @gameObjects.remove(aId)
+        victim=@gameObjects[vId]
+        @gameObjects.remove(vId)
+        @players.forEach (player)->
+            player.emit("RPCDESTRUCTION", {aId:aId, aTag:attacker.tag, aClientId:aClientId, vId:vId, vTag:victim.tag, vClientId:vClientId})
 
 #nothing new here
 class Factory
@@ -172,8 +180,19 @@ class Robot
         @y=y
         @game=game
         @speed = 1
+        @accumulatedTime=0
         console.log game
     update:(deltaTime)=>
+        # a first take on optimization.
+        #the idea is to only move robots, if some time has passed
+        if @accumulatedTime<70
+            @accumulatedTime+=deltaTime
+            return
+        else
+            deltaTime+=@accumulatedTime
+            @accumulatedTime=0
+
+
         #get a list of all gameObjects from the game singleton
         #filter the list for objects with a different clientId
         #those are the enemies
@@ -196,13 +215,15 @@ class Robot
             console.log tar
             diff= tar.funcSub(pos)
             console.log diff
-            diff.normalize()
-            diff.mul(@speed)
-            pos.add(diff.mul(deltaTime/100))
-
-            @game.requestMove(@id,pos.x,pos.y)
-            @x=pos.x
-            @y=pos.y
+            if diff.length()<1
+                @game.requestAttack(@id, @clientId, target.id, target.clientId)
+            else
+                diff.normalize()
+                diff.mul(@speed)
+                pos.add(diff.mul(deltaTime/100))
+                @game.requestMove(@id,pos.x,pos.y)
+                @x=pos.x
+                @y=pos.y
 
 
 game= new Game()

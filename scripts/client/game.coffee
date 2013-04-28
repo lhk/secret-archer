@@ -1,7 +1,7 @@
 $(window).load ->
     net = new Network()
     
-
+Array::remove = (t) -> @[t..t] = []
 class Network
     gameObjects:[]
     constructor: ->
@@ -32,14 +32,14 @@ class Network
         socket=io.connect "localhost"
 
         socket.on "CONNECTED", (data)=>
-            alert "connected with clientId"+data.clientId
+            alert "connected with clientId: "+data.clientId
             @selfId=data.clientId
 
         socket.on "NEWS", (data)->
             alert data.news
         
         socket.on "RPCSPAWN", (data)=>
-            alert "RPCSPAWN"
+            #alert "RPCSPAWN"
             @spawn(data)
 
         socket.on "RPCMOVE", (data)=>
@@ -56,14 +56,34 @@ class Network
                     object.y=y
                     object.shape.x=x
                     object.shape.y=y
-        
+
+        socket.on "RPCDESTRUCTION", (data)->
+            alert "destruction"
+            alert data
+            aId=data.aId
+            vId=data.vId
+            attacker=@gameObjects[aId]
+            alert attacker
+            victim=@gameObjects[vId]
+            alert victim
+            aTag=attacker.tag
+            vTag=victim.tag
+            if aTag== 0
+                @factoryContainer.removeChild(attacker.shape)
+            else if aTag==1
+                @robotContainer.removeChild(attacker.shape)
+            if vTag==0
+                @factoryContainer.removeChild(victim.shape)
+            else if vTag==1
+                @robotContainer.removeChild(attacker.shape)
+
         window.onmousedown= (ev)=>
             mx=@stage.mouseX
             my=@stage.mouseY
             socket.emit "RPCSPAWNREQUEST", (x:mx, y:my, tag:0, clientId:@selfId)
             
     spawn: (data)=>
-        alert "spawn"
+        #alert "spawn"
         x=data.x
         y=data.y
         
@@ -106,4 +126,4 @@ class Network
         #alert "id "+data.id+", tag "+data.tag
         bitMap.x=x
         bitMap.y=y
-        @gameObjects.push({shape:bitMap, x:x, y:y, tag:data.tag, id:data.id, clientId:data.clientId})
+        @gameObjects[id]={shape:bitMap, x:x, y:y, tag:data.tag, id:data.id, clientId:data.clientId}
