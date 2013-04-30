@@ -1,0 +1,23 @@
+Idee:
+
+Im Netzwerk existieren drei Arten von Rechnern:
+
+* ein Client (existiert mehrfach)
+* ein Server(1), der Verbindungensanfragen der Clients zuerst empfängt und Spiele vermittelt. (existiert einfach)
+* ein Server(2), der das Spiel leitet. (existiert pro Spiel einfach)
+
+Server(2):
+Manipulationssicherheit > Geschwindigkeit
+
+- hält Clients
+- validiert Bauaufträge (-> Kollisionsabfragen), Bewegungsaufträge etc.
+Idee: Für eine Bewegung versendet der Server nur Start- und Zielpunkt, nicht jeden einzelnen Wegpunkt.
+Die Clients sind selbst dafür verantwortlich, zwischen Start- und Zielpunkt zu interpolieren.
+Dadurch sind sowohl Manipulationssicherheit als auch Performanz sichergestellt.
+- hält Logik nach (Roboterspawn, Zerstörung)
+
+Client:
+hält Gameobjects, Server
+
+
+Kann js/coffeescript kompiliert werden? Können die Dateien in Modulen organisiert werden (vgl. C++-Namespaces)?
