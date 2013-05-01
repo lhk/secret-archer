@@ -50,3 +50,6 @@ task 'init', 'Fetches all dependencies', ->
 
 task 'clean', 'Tidies the repository', ->
   spawn 'rm' , ['-r', '-d', 'lib/', 'node_modules/'], {stdio: 'inherit'}
+
+task 'start_server', 'Starts the game\'s server', ->
+  spawn 'coffee', ['scripts/server/server.coffee'], {stdio: 'inherit'}
