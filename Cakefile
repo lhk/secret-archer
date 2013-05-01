@@ -47,3 +47,6 @@ task 'init', 'Fetches all dependencies', ->
   console.log "Fetching residual dependencies..."
   downloadFile "http://code.jquery.com/jquery-1.9.1.min.js", "jquery-1.9.1.min.js", depFolder
   downloadFile "http://code.createjs.com/easeljs-0.6.0.min.js", "easeljs-0.6.0.min.js", depFolder
+
+task 'clean', 'Tidies the repository', ->
+  spawn 'rm' , ['-r', '-d', 'lib/', 'node_modules/'], {stdio: 'inherit'}
