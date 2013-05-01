@@ -9,6 +9,12 @@
     return net = new Network();
   });
 
+  Array.prototype.remove = function(t) {
+    var _ref;
+
+    return ([].splice.apply(this, [t, t - t + 1].concat(_ref = [])), _ref);
+  };
+
   Network = (function() {
     Network.prototype.gameObjects = [];
 
@@ -35,14 +41,13 @@
       this.stage.addChild(bitMap);
       socket = io.connect("localhost");
       socket.on("CONNECTED", function(data) {
-        alert("connected with clientId" + data.clientId);
+        alert("connected with clientId: " + data.clientId);
         return _this.selfId = data.clientId;
       });
       socket.on("NEWS", function(data) {
         return alert(data.news);
       });
       socket.on("RPCSPAWN", function(data) {
-        alert("RPCSPAWN");
         return _this.spawn(data);
       });
       socket.on("RPCMOVE", function(data) {
@@ -67,6 +72,30 @@
         }
         return _results;
       });
+      socket.on("RPCDESTRUCTION", function(data) {
+        var aId, aTag, attacker, vId, vTag, victim;
+
+        alert("destruction");
+        alert(data);
+        aId = data.aId;
+        vId = data.vId;
+        attacker = this.gameObjects[aId];
+        alert(attacker);
+        victim = this.gameObjects[vId];
+        alert(victim);
+        aTag = attacker.tag;
+        vTag = victim.tag;
+        if (aTag === 0) {
+          this.factoryContainer.removeChild(attacker.shape);
+        } else if (aTag === 1) {
+          this.robotContainer.removeChild(attacker.shape);
+        }
+        if (vTag === 0) {
+          return this.factoryContainer.removeChild(victim.shape);
+        } else if (vTag === 1) {
+          return this.robotContainer.removeChild(attacker.shape);
+        }
+      });
       window.onmousedown = function(ev) {
         var mx, my;
 
@@ -84,7 +113,6 @@
     Network.prototype.spawn = function(data) {
       var bitMap, id, tag, x, y;
 
-      alert("spawn");
       x = data.x;
       y = data.y;
       id = data.id;
@@ -110,14 +138,14 @@
       this.stage.update();
       bitMap.x = x;
       bitMap.y = y;
-      return this.gameObjects.push({
+      return this.gameObjects[id] = {
         shape: bitMap,
         x: x,
         y: y,
         tag: data.tag,
         id: data.id,
         clientId: data.clientId
-      });
+      };
     };
 
     return Network;
