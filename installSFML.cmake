@@ -34,14 +34,14 @@ if(EXISTS ${SFMLDIR})
     execute_process(COMMAND ${SUDO} ${CMAKE_COMMAND} -E remove ${SFMLDIR})
   endif()
 endif()
-message(STATUS "Fetching SFML...")
+message(STATUS "Retrieving SFML from repository")
 
 execute_process(COMMAND git clone git://github.com/LaurentGomila/SFML.git
                  WORKING_DIRECTORY ${TMPDIR}
                  RESULT_VARIABLE RESULT)
 check(${RESULT})
     
-message(STATUS "Checking out version 2.0 ...")
+message(STATUS "Checking out version 2.0")
 execute_process(COMMAND git checkout 2.0
                  WORKING_DIRECTORY ${SFMLDIR}
                  OUTPUT_QUIET
@@ -50,15 +50,15 @@ execute_process(COMMAND git checkout 2.0
                  )
 check(${RESULT})
 
-message(STATUS "Generating Makefile...")
-execute_process(COMMAND ${CMAKE_COMMAND} -G "${SFML_MAKEFILE_GENERATOR}" 
+message(STATUS "Generating Makefile")
+execute_process(COMMAND ${CMAKE_COMMAND} -G ${SFML_MAKEFILE_GENERATOR}
                  WORKING_DIRECTORY ${SFMLDIR}
                  OUTPUT_QUIET
                  RESULT_VARIABLE RESULT
                 )
 check(${RESULT})
 
-message(STATUS "Building and installing SFML release libraries...")
+message(STATUS "Building and installing SFML release libraries")
 execute_process(COMMAND ${SUDO} make install -j${NUM_CORES}
                  WORKING_DIRECTORY ${SFMLDIR}
                  OUTPUT_QUIET
@@ -68,8 +68,8 @@ check(${RESULT})
 IF(${BUILD_SFML_DEBUG_LIBS})
   tidySFMLRepo()
   # If the commands are concatenated like `${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE=Release && make install`, the working directory for make install is wrong. Why?
-  message(STATUS "Building and installing SFML debug libraries...")  
-  execute_process(COMMAND ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE=Release 
+  message(STATUS "Building and installing SFML debug libraries")  
+  execute_process(COMMAND ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE=Debug 
                   WORKING_DIRECTORY ${SFMLDIR}
                   OUTPUT_QUIET
                   RESULT_VARIABLE RESULT)
@@ -83,7 +83,7 @@ ENDIF()
 
 IF(${BUILD_SFML_DOC})
 # tidySFMLRepo not necessary here. It's just about the docs.
-  message(STATUS "Building and installing SFML docs...")
+  message(STATUS "Building and installing SFML docs")
   execute_process(COMMAND ${CMAKE_COMMAND} -DSFML_BUILD_DOC=TRUE                   
                   WORKING_DIRECTORY ${SFMLDIR}
                   OUTPUT_QUIET

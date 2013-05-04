@@ -6,11 +6,13 @@ set(BUILD_SFML_DOC 1 CACHE BOOL "True if you want to build the SFML documentatio
 set(BUILD_SFML_DEBUG_LIBS 1 CACHE BOOL "True if you want to build debug variants of the SFML libs, too. Release libraries are always built.")
 set(NUM_CORES 4 CACHE INTEGER "Number of cores on your machine.")
 
-#OS detection. ${WINDOWS} is automatically defined by CMake.
+#OS detection.
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  set(LINUX true)
+  set(LINUX 1)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  set(WINDOWS 1)
 else()
-  set(LINUX false)
+
 endif()
 
 # Check whether the OS is supported
@@ -28,12 +30,12 @@ if(LINUX)
   endif()
 elseif(WINDOWS)
   set(_TMPDIR "C:/Windows/Temp")
-  set(_SFML_MAKEFILE_GENERATOR "MinGW Makefiles")
+  set(_SFML_MAKEFILE_GENERATOR "MSYS Makefiles")
 endif()
 
 # Cache all variables that will be needed during build.
 set(TMPDIR ${_TMPDIR} CACHE PATH "Folder for temporary files")
-set(SFML_MAKEFILE_GENERATOR ${_SFML_MAKEFILE_GENERATOR} CACHE STRING "MinGW Makefiles")
+set(SFML_MAKEFILE_GENERATOR ${_SFML_MAKEFILE_GENERATOR} CACHE STRING "Makefile generator for building SFML.")
 if(NOT DEFINED NEED_SUDO)
   set(NEED_SUDO 0 CACHE BOOL "True if `sudo` grants administrative priviledges on your system.")
 endif()
