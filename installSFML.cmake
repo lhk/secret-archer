@@ -1,4 +1,5 @@
 set(SFMLDIR ${TMPDIR}/SFML)
+# Only set sudo if there is a sudo ;-)
 if(${NEED_SUDO} AND NOT WINDOWS)
   set(SUDO sudo)
 else()
@@ -58,7 +59,7 @@ execute_process(COMMAND ${CMAKE_COMMAND} -G "${SFML_MAKEFILE_GENERATOR}"
 check(${RESULT})
 
 message(STATUS "Building and installing SFML release libraries...")
-execute_process(COMMAND ${SUDO} make install
+execute_process(COMMAND ${SUDO} make install -j${NUM_CORES}
                  WORKING_DIRECTORY ${SFMLDIR}
                  OUTPUT_QUIET
                  RESULT_VARIABLE RESULT)
@@ -73,7 +74,7 @@ IF(${BUILD_SFML_DEBUG_LIBS})
                   OUTPUT_QUIET
                   RESULT_VARIABLE RESULT)
   check(${RESULT})
-  execute_process(COMMAND ${SUDO} make install
+  execute_process(COMMAND ${SUDO} make install -j${NUM_CORES}
                   WORKING_DIRECTORY ${SFMLDIR}
                   OUTPUT_QUIET
                   RESULT_VARIABLE RESULT)
@@ -88,9 +89,11 @@ IF(${BUILD_SFML_DOC})
                   OUTPUT_QUIET
                   RESULT_VARIABLE RESULT)
   check(${RESULT})
-  execute_process(COMMAND ${SUDO} make install                
+#ERROR_QUIET is currently used to suppress doxygen-warnings. Is there a way that does not eat doxygen-errors, too? We might as well ignore errors here as SFML should always be stable.
+  execute_process(COMMAND ${SUDO} make install -j${NUM_CORES}                
                   WORKING_DIRECTORY ${SFMLDIR}
                   OUTPUT_QUIET
+                  ERROR_QUIET                                    
                   RESULT_VARIABLE RESULT)
   check(${RESULT})
 ENDIF()

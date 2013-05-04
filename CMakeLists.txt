@@ -4,6 +4,7 @@ project(secret-archer)
 
 set(BUILD_SFML_DOC 1 CACHE BOOL "True if you want to build the SFML documentation. ON by default.")
 set(BUILD_SFML_DEBUG_LIBS 1 CACHE BOOL "True if you want to build debug variants of the SFML libs, too. Release libraries are always built.")
+set(NUM_CORES 4 CACHE INTEGER "Number of cores on your machine.")
 
 #OS detection. ${WINDOWS} is automatically defined by CMake.
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -17,6 +18,7 @@ if(NOT LINUX AND NOT WINDOWS)
   message(FATAL_ERROR "OS is not supported. Cannot continue.")
 endif()
 
+message(WARNING "Please set NUM_CORES according to your needs. NUM_CORES is 4 by default.")
 #OS-specific variables.
 if(LINUX)
   set(_TMPDIR "/tmp")
@@ -48,6 +50,6 @@ endif()
 
 # The parameter passing here is an ugly hack :(
 add_custom_target(installSFML
-  COMMAND ${CMAKE_COMMAND} -DTMPDIR=${TMPDIR} -DSFML_MAKEFILE_GENERATOR=${SFML_MAKEFILE_GENERATOR} -DBUILD_SFML_DOC=${BUILD_SFML_DOC} -DBUILD_SFML_DEBUG_LIBS=${BUILD_SFML_DEBUG_LIBS} -DNEED_SUDO=${NEED_SUDO} -P ${CMAKE_CURRENT_BINARY_DIR}/installSFML.cmake
+  COMMAND ${CMAKE_COMMAND} -DTMPDIR=${TMPDIR} -DSFML_MAKEFILE_GENERATOR=${SFML_MAKEFILE_GENERATOR} -DBUILD_SFML_DOC=${BUILD_SFML_DOC} -DBUILD_SFML_DEBUG_LIBS=${BUILD_SFML_DEBUG_LIBS} -DNEED_SUDO=${NEED_SUDO} -DNUM_CORES=${NUM_CORES} -P ${CMAKE_CURRENT_BINARY_DIR}/installSFML.cmake
   COMMENT "Installing SFML"
 )
