@@ -24,7 +24,6 @@ macro(tidySFMLRepo)
   check(RESULT)
 endmacro()
 
-
 # Check for an existing SFML-clone
 if(EXISTS ${SFMLDIR})
   message(STATUS "Removing existing SFML-clone")
@@ -51,7 +50,7 @@ execute_process(COMMAND git checkout 2.0
 check(${RESULT})
 
 message(STATUS "Generating Makefile")
-execute_process(COMMAND ${CMAKE_COMMAND} -G ${SFML_MAKEFILE_GENERATOR}
+execute_process(COMMAND ${CMAKE_COMMAND} -G ${SFML_MAKEFILE_GENERATOR} -DCMAKE_INSTALL_PREFIX=${SFML_INSTALL_PREFIX}
                  WORKING_DIRECTORY ${SFMLDIR}
                  OUTPUT_QUIET
                  RESULT_VARIABLE RESULT
