@@ -1,3 +1,5 @@
+cmake_policy(SET CMP0012 NEW)
+
 set(THORDIR ${TMPDIR}/Thor)
 # Only set sudo if there is a sudo ;-)
 if(${NEED_SUDO} AND NOT WINDOWS)

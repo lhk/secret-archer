@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.8)
 project(secret-archer)
 # TODO: look for doxygen.
 
+cmake_policy(SET CMP0012 NEW)
+
 #OS detection.
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   set(LINUX 1)
