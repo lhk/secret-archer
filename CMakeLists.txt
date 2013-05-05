@@ -4,6 +4,7 @@ project(secret-archer)
 
 set(BUILD_SFML_DOC 1 CACHE BOOL "True if you want to build the SFML documentation. ON by default.")
 set(BUILD_SFML_DEBUG_LIBS 1 CACHE BOOL "True if you want to build debug variants of the SFML libs, too. Release libraries are always built.")
+# TODO: automated detection of cores?
 set(NUM_CORES 4 CACHE INTEGER "Number of cores on your machine.")
 set(SFML_INSTALL_PREFIX "C:/SFML" CACHE STRING "Directory to which SFML will be installed.")
 
@@ -56,3 +57,5 @@ add_custom_target(installSFML
   COMMAND ${CMAKE_COMMAND} -DTMPDIR=${TMPDIR} -DSFML_MAKEFILE_GENERATOR=${SFML_MAKEFILE_GENERATOR} -DBUILD_SFML_DOC=${BUILD_SFML_DOC} -DBUILD_SFML_DEBUG_LIBS=${BUILD_SFML_DEBUG_LIBS} -DNEED_SUDO=${NEED_SUDO} -DNUM_CORES=${NUM_CORES} -DSFML_INSTALL_PREFIX=${SFML_INSTALL_PREFIX} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake/installSFML.cmake
   COMMENT "Installing SFML"
 )
+
+add_subdirectory(src)
