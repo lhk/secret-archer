@@ -16,9 +16,11 @@ set(BUILD_SFML_DEBUG_LIBS 1 CACHE BOOL "True if you want to build debug variants
 set(NUM_CORES 4 CACHE INTEGER "Number of cores on your machine.")
 if(WINDOWS)
   set(SFML_INSTALL_PREFIX "C:/SFML" CACHE STRING "Directory to which SFML will be installed.")
+  set(THOR_INSTALL_PREFIX "C:/Thor" CACHE STRING "Directory to which Thor will be installed.")
 elseif(LINUX)
   # as suggested by SFML
   set(SFML_INSTALL_PREFIX "/usr/local" CACHE STRING "Directory to which SFML will be installed.")
+  set(THOR_INSTALL_PREFIX "/usr/local" CACHE STRING "Directory to which Thor will be installed.")
 endif()
 
 message(WARNING "Please set NUM_CORES according to your needs. NUM_CORES is 4 by default.")
@@ -56,3 +58,14 @@ add_custom_target(installSFML
   COMMAND ${CMAKE_COMMAND} -DTMPDIR=${TMPDIR} -DSFML_MAKEFILE_GENERATOR=${SFML_MAKEFILE_GENERATOR} -DBUILD_SFML_DOC=${BUILD_SFML_DOC} -DBUILD_SFML_DEBUG_LIBS=${BUILD_SFML_DEBUG_LIBS} -DNEED_SUDO=${NEED_SUDO} -DNUM_CORES=${NUM_CORES} -DSFML_INSTALL_PREFIX=${SFML_INSTALL_PREFIX} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake/installSFML.cmake
   COMMENT "Installing SFML"
 )
+
+add_custom_target(installThor
+  COMMAND ${CMAKE_COMMAND} -DTMPDIR=${TMPDIR} -DSFML_MAKEFILE_GENERATOR=${SFML_MAKEFILE_GENERATOR} -DBUILD_SFML_DOC=${BUILD_SFML_DOC} -DBUILD_SFML_DEBUG_LIBS=${BUILD_SFML_DEBUG_LIBS} -DNEED_SUDO=${NEED_SUDO} -DNUM_CORES=${NUM_CORES} -DSFML_INSTALL_PREFIX=${SFML_INSTALL_PREFIX} -DTHOR_INSTALL_PREFIX=${THOR_INSTALL_PREFIX} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake/installThor.cmake
+  DEPENDS installSFML
+  COMMENT "Installing Thor"
+)
+
+add_custom_target(installDependencies
+                  DEPENDS installSFML installThor)
+
+
