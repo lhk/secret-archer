@@ -13,11 +13,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set(WINDOWS 1)
 else()
-
-endif()
-
-# Check whether the OS is supported
-if(NOT LINUX AND NOT WINDOWS)
   message(FATAL_ERROR "OS is not supported. Cannot continue.")
 endif()
 
