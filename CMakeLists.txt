@@ -2,11 +2,6 @@ cmake_minimum_required(VERSION 2.8)
 project(secret-archer)
 # TODO: look for doxygen.
 
-set(BUILD_SFML_DOC 1 CACHE BOOL "True if you want to build the SFML documentation. ON by default.")
-set(BUILD_SFML_DEBUG_LIBS 1 CACHE BOOL "True if you want to build debug variants of the SFML libs, too. Release libraries are always built.")
-set(NUM_CORES 4 CACHE INTEGER "Number of cores on your machine.")
-set(SFML_INSTALL_PREFIX "C:/SFML" CACHE STRING "Directory to which SFML will be installed.")
-
 #OS detection.
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   set(LINUX 1)
@@ -14,6 +9,16 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set(WINDOWS 1)
 else()
   message(FATAL_ERROR "OS is not supported. Cannot continue.")
+endif()
+
+set(BUILD_SFML_DOC 1 CACHE BOOL "True if you want to build the SFML documentation. ON by default.")
+set(BUILD_SFML_DEBUG_LIBS 1 CACHE BOOL "True if you want to build debug variants of the SFML libs, too. Release libraries are always built.")
+set(NUM_CORES 4 CACHE INTEGER "Number of cores on your machine.")
+if(WINDOWS)
+  set(SFML_INSTALL_PREFIX "C:/SFML" CACHE STRING "Directory to which SFML will be installed.")
+elseif(LINUX)
+  # as suggested by SFML
+  set(SFML_INSTALL_PREFIX "/usr/local" CACHE STRING "Directory to which SFML will be installed.")
 endif()
 
 message(WARNING "Please set NUM_CORES according to your needs. NUM_CORES is 4 by default.")
