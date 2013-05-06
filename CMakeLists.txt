@@ -16,14 +16,9 @@ endif()
 set(BUILD_SFML_DOC 1 CACHE BOOL "True if you want to build the SFML documentation. ON by default.")
 set(BUILD_SFML_DEBUG_LIBS 1 CACHE BOOL "True if you want to build debug variants of the SFML libs, too. Release libraries are always built.")
 set(NUM_CORES 4 CACHE INTEGER "Number of cores on your machine.")
-if(WINDOWS)
-  set(SFML_INSTALL_PREFIX "C:/SFML" CACHE STRING "Directory to which SFML will be installed.")
-  set(THOR_INSTALL_PREFIX "C:/Thor" CACHE STRING "Directory to which Thor will be installed.")
-elseif(LINUX)
-  # as suggested by SFML
-  set(SFML_INSTALL_PREFIX "/usr/local" CACHE STRING "Directory to which SFML will be installed.")
-  set(THOR_INSTALL_PREFIX "/usr/local" CACHE STRING "Directory to which Thor will be installed.")
-endif()
+
+set(SFML_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/extlibs/SFML" CACHE STRING "Directory to which SFML will be installed.")
+set(THOR_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/extlibs/Thor" CACHE STRING "Directory to which Thor will be installed.")
 
 message(WARNING "Please set NUM_CORES according to your needs. NUM_CORES is 4 by default.")
 #OS-specific variables.
