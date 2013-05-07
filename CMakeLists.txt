@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(secret-archer)
 # TODO: look for doxygen.
 
+message(STATUS "If cmake fails because it doesn't find SFML, this cmake-script can install it for you. Run `make installDependencies`.")
 cmake_policy(SET CMP0012 NEW)
 
 #OS detection.
@@ -19,6 +20,7 @@ set(NUM_CORES 4 CACHE INTEGER "Number of cores on your machine.")
 
 set(SFML_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/extlibs/SFML" CACHE STRING "Directory to which SFML will be installed.")
 set(THOR_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/extlibs/Thor" CACHE STRING "Directory to which Thor will be installed.")
+set(SFGUI_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/extlibs/SFGUI" CACHE STRING "Directory to which SFGUI will be installed.")
 
 message(WARNING "Please set NUM_CORES according to your needs. NUM_CORES is 4 by default.")
 #OS-specific variables.
@@ -26,7 +28,7 @@ if(LINUX)
   set(_TMPDIR "/tmp")
   set(_SFML_MAKEFILE_GENERATOR "Unix Makefiles")
   if(NOT DEFINED NEED_SUDO)
-    message(WARNING "You appear to be running a Linux-system. Please set NEED_SUDO according to your needs. NEED_SUDO is false by default.")
+    message(WARNING "You appear to be running a Linux-system. Please set NEED_SUDO if necessary. You can ignore this setting if you do NOT want to install SFML using this build system. NEED_SUDO is false by default.")
   endif()
 elseif(WINDOWS)
   set(_TMPDIR "C:/Windows/Temp")
@@ -62,7 +64,12 @@ add_custom_target(installThor
   COMMENT "Installing Thor"
 )
 
-add_custom_target(installDependencies
-                  DEPENDS installSFML installThor)
+add_custom_target(installSFGUI
+  COMMAND ${CMAKE_COMMAND} -DTMPDIR=${TMPDIR} -DSFML_MAKEFILE_GENERATOR=${SFML_MAKEFILE_GENERATOR} -DBUILD_SFML_DOC=${BUILD_SFML_DOC} -DBUILD_SFML_DEBUG_LIBS=${BUILD_SFML_DEBUG_LIBS} -DNEED_SUDO=${NEED_SUDO} -DNUM_CORES=${NUM_CORES} -DSFML_INSTALL_PREFIX=${SFML_INSTALL_PREFIX} -DSFGUI_INSTALL_PREFIX=${SFGUI_INSTALL_PREFIX} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake/installThor.cmake
+  DEPENDS installSFML
+  COMMENT "Installing Thor"
+)
 
+add_custom_target(installDependencies
+                  DEPENDS installSFML installThor installSFGUI)
 
