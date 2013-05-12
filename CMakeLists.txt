@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 2.8)
 project(secret-archer)
 # TODO: look for doxygen.
 
-message(STATUS "If cmake fails because it doesn't find SFML, this cmake-script can install it for you. Run `make installDependencies`.")
 cmake_policy(SET CMP0012 NEW)
 
 #OS detection.
@@ -65,11 +64,25 @@ add_custom_target(installThor
 )
 
 add_custom_target(installSFGUI
-  COMMAND ${CMAKE_COMMAND} -DTMPDIR=${TMPDIR} -DSFML_MAKEFILE_GENERATOR=${SFML_MAKEFILE_GENERATOR} -DBUILD_SFML_DOC=${BUILD_SFML_DOC} -DBUILD_SFML_DEBUG_LIBS=${BUILD_SFML_DEBUG_LIBS} -DNEED_SUDO=${NEED_SUDO} -DNUM_CORES=${NUM_CORES} -DSFML_INSTALL_PREFIX=${SFML_INSTALL_PREFIX} -DSFGUI_INSTALL_PREFIX=${SFGUI_INSTALL_PREFIX} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake/installThor.cmake
+  COMMAND ${CMAKE_COMMAND} -DTMPDIR=${TMPDIR} -DSFML_MAKEFILE_GENERATOR=${SFML_MAKEFILE_GENERATOR} -DBUILD_SFML_DOC=${BUILD_SFML_DOC} -DBUILD_SFML_DEBUG_LIBS=${BUILD_SFML_DEBUG_LIBS} -DNEED_SUDO=${NEED_SUDO} -DNUM_CORES=${NUM_CORES} -DSFML_INSTALL_PREFIX=${SFML_INSTALL_PREFIX} -DSFGUI_INSTALL_PREFIX=${SFGUI_INSTALL_PREFIX} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake/installSFGUI.cmake
   DEPENDS installSFML
-  COMMENT "Installing Thor"
+  COMMENT "Installing SFGUI"
 )
 
 add_custom_target(installDependencies
                   DEPENDS installSFML installThor installSFGUI)
 
+# Finding SFML must not abort cmake-configuration: Configuration is necessary to run `make installDependencies`
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+set(SFML_ROOT ${SFML_INSTALL_PREFIX})
+set(CMAKE_PREFIX_PATH ${SFML_INSTALL_PREFIX})
+#set(SFML_INCLUDE_DIR ${SFML_INSTALL_PREFIX}/include)
+
+set(SFML_FIND_QUIETLY TRUE) 
+find_package(SFML 2 COMPONENTS system)
+
+if(NOT SFML_FOUND)
+  message(WARNING "No SFML found. Run: `make installDependencies` and reconfigure the project afterwards.")
+else()
+  add_subdirectory(src)
+endif()
