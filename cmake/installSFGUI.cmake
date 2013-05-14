@@ -3,12 +3,6 @@ cmake_policy(SET CMP0012 NEW)
 include(util)
 
 set(SFGUIDIR ${TMPDIR}/SFGUI)
-# Only set sudo if there is a sudo ;-)
-if(${NEED_SUDO} AND NOT WINDOWS)
-  set(SUDO sudo)
-else()
-  set(SUDO "")
-endif()
 
 # Check for an existing SFGUI-clone
 delete(${SFGUIDIR})
@@ -22,7 +16,7 @@ elseif(WINDOWS)
 endif()
 
 # SFGUI does not provide a FindSFML.cmake on its own. Luckily, SFML places one of those it its installation directory.
-cmake_configure(${SFGUIDIR} -G${SFML_MAKEFILE_GENERATOR} -DSFML_INCLUDE_DIR=${SFML_INSTALL_PREFIX}/include -DCMAKE_INSTALL_PREFIX=${SFGUI_INSTALL_PREFIX} -DSFML_ROOT=${SFML_INSTALL_PREFIX} -DCMAKE_MODULE_PATH=${FINDSFML_DIR})
+cmake_configure(${SFGUIDIR} -G${SFML_MAKEFILE_GENERATOR} -DSFGUI_BUILD_EXAMPLES=FALSE -DSFML_INCLUDE_DIR=${SFML_INSTALL_PREFIX}/include -DCMAKE_INSTALL_PREFIX=${SFGUI_INSTALL_PREFIX} -DSFML_ROOT=${SFML_INSTALL_PREFIX} -DCMAKE_MODULE_PATH=${FINDSFML_DIR})
 make_install("Building and installing SFGUI release library" ${SFGUIDIR})
 
 if(${BUILD_SFML_DEBUG_LIBS})

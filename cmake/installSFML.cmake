@@ -3,12 +3,6 @@ cmake_policy(SET CMP0012 NEW)
 include(util)
 
 set(SFMLDIR ${TMPDIR}/SFML)
-# Only set sudo if there is a sudo ;-)
-if(${NEED_SUDO} AND NOT WINDOWS)
-  set(SUDO sudo)
-else()
-  set(SUDO "")
-endif()
 
 # Check for an existing SFML-clone
 delete(${SFMLDIR})

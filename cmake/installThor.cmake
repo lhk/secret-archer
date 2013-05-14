@@ -3,13 +3,6 @@ cmake_policy(SET CMP0012 NEW)
 include(util)
 
 set(THORDIR ${TMPDIR}/Thor)
-# Only set sudo if there is a sudo ;-)
-if(${NEED_SUDO} AND NOT WINDOWS)
-  set(SUDO sudo)
-else()
-  set(SUDO "")
-endif()
-
 # Check for an existing Thor-clone
 delete(${THORDIR})
 git_clone(Thor git://github.com/Bromeon/Thor.git ${TMPDIR})
