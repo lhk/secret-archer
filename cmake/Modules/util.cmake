@@ -12,7 +12,7 @@ endfunction()
 
 # Cleans the repo specified in repodir.
 macro(make_clean repodir)
-  execute_process(COMMAND make clean
+  execute_process(COMMAND ${CMAKE_MAKE_PROGRAM} clean
                   WORKING_DIRECTORY ${repodir}
                   OUTPUT_QUIET
                   RESULT_VARIABLE RESULT)
@@ -72,27 +72,29 @@ function(cmake_configure path)
   #opt is one additional argument.
   execute_process(COMMAND ${CMAKE_COMMAND} ${ARGN}
                   WORKING_DIRECTORY ${path}
-                  OUTPUT_QUIET
-				  ERROR_QUIET
+                  #OUTPUT_QUIET
+				  #ERROR_QUIET
                   RESULT_VARIABLE RESULT
                  )   	
   check(${RESULT})
 endfunction()
 
 # ERROR_QUIET may be passed as additional argument.
-function(make_install msg path)
+function(make_install make_program msg path)
   message(STATUS ${msg})
-  if(DEFINED NUM_CORES)
-    execute_process(COMMAND ${SUDO} make install -j${NUM_CORES}
-                    WORKING_DIRECTORY ${path}
-                    OUTPUT_QUIET
-					${ARGN}  
-                    RESULT_VARIABLE RESULT)
+  # res is -1 if nmake is not used. nmake does not support the j-switch.
+  STRING(FIND "${make_program}" "nmake" res)
+  if(DEFINED NUM_CORES AND res EQUAL -1)
+     execute_process(COMMAND ${make_program} install -j${NUM_CORES}
+	                 WORKING_DIRECTORY ${path}
+                     #OUTPUT_QUIET
+					 #${ARGN}
+                     RESULT_VARIABLE RESULT)
   else()
-    execute_process(COMMAND ${SUDO} make install
+    execute_process(COMMAND ${make_program} install
                     WORKING_DIRECTORY ${path}
-                    OUTPUT_QUIET
-					${ARGN}
+                    #OUTPUT_QUIET
+					#${ARGN}
                     RESULT_VARIABLE RESULT)
   endif()
 check(${RESULT})

@@ -17,16 +17,16 @@ endif()
 
 # SFGUI does not provide a FindSFML.cmake on its own. Luckily, SFML places one of those it its installation directory.
 cmake_configure(${SFGUIDIR} -G${SFML_MAKEFILE_GENERATOR} -DSFGUI_BUILD_EXAMPLES=FALSE -DSFML_INCLUDE_DIR=${SFML_INSTALL_PREFIX}/include -DCMAKE_INSTALL_PREFIX=${SFGUI_INSTALL_PREFIX} -DSFML_ROOT=${SFML_INSTALL_PREFIX} -DCMAKE_MODULE_PATH=${FINDSFML_DIR})
-make_install("Building and installing SFGUI release library" ${SFGUIDIR})
+make_install(${MAKE_PROGRAM} "Building and installing SFGUI release library" ${SFGUIDIR})
 
 if(${BUILD_SFML_DEBUG_LIBS})
   cmake_configure(${SFGUIDIR} -DCMAKE_BUILD_TYPE=Debug)
-  make_install("Building and installing SFGUI debug library" ${SFGUIDIR})
+  make_install(${MAKE_PROGRAM} "Building and installing SFGUI debug library" ${SFGUIDIR})
 endif()
 
 if(${BUILD_SFML_DOC})
   cmake_configure(${SFGUIDIR} -DSFGUI_BUILD_DOC=TRUE)
-  make_install("Building and installing SFGUI docs" ${SFGUIDIR} ERROR_QUIET)
+  make_install(${MAKE_PROGRAM} "Building and installing SFGUI docs" ${SFGUIDIR} ERROR_QUIET)
 endif()
 
 set(CMAKE_MODULE_PATH ${_CMAKE_MODULE_PATH})
