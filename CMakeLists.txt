@@ -4,6 +4,8 @@ project(secret-archer)
 
 cmake_policy(SET CMP0012 NEW)
 
+include(ExternalProject)
+
 #OS detection.
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   set(LINUX 1)
@@ -59,26 +61,65 @@ if(NOT IS_DIRECTORY ${TMPDIR})
   endif()
 endif()
 
-# The parameter passing here is an ugly hack :(
-add_custom_target(installSFML
-  COMMAND ${CMAKE_COMMAND} -DMAKE_PROGRAM=${CMAKE_MAKE_PROGRAM} -DTMPDIR=${TMPDIR} -DSFML_MAKEFILE_GENERATOR=${CMAKE_GENERATOR} -DBUILD_SFML_DOC=${BUILD_SFML_DOC} -DBUILD_SFML_DEBUG_LIBS=${BUILD_SFML_DEBUG_LIBS} -DNUM_CORES=${NUM_CORES} -DSFML_INSTALL_PREFIX=${SFML_INSTALL_PREFIX} -DCMAKE_MODULE_PATH=${CMAKE_MODULE_PATH} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake/installSFML.cmake
-  COMMENT "Installing SFML"
-)
+# FindSFML.cmake is installed to different locations on Windows and Linux.
+if(LINUX)
+  set(FINDSFML_DIR ${SFML_INSTALL_PREFIX}/share/SFML/cmake/Modules)
+elseif(WINDOWS)
+  set(FINDSFML_DIR ${SFML_INSTALL_PREFIX}/cmake/Modules)
+endif()
 
-add_custom_target(installThor
-  COMMAND ${CMAKE_COMMAND} -DMAKE_PROGRAM=${CMAKE_MAKE_PROGRAM} -DTMPDIR=${TMPDIR} -DSFML_MAKEFILE_GENERATOR=${CMAKE_GENERATOR} -DBUILD_SFML_DOC=${BUILD_SFML_DOC} -DBUILD_SFML_DEBUG_LIBS=${BUILD_SFML_DEBUG_LIBS} -DNUM_CORES=${NUM_CORES} -DSFML_INSTALL_PREFIX=${SFML_INSTALL_PREFIX} -DCMAKE_MODULE_PATH=${CMAKE_MODULE_PATH} -DTHOR_INSTALL_PREFIX=${THOR_INSTALL_PREFIX} -DWINDOWS=${WINDOWS} -DLINUX=${LINUX} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake/installThor.cmake 
-  DEPENDS installSFML
-  COMMENT "Installing Thor"
-)
+ExternalProject_Add(
+    SFML
+       PREFIX ${TMPDIR}
+       URL http://github.com/LaurentGomila/SFML/archive/2.0.tar.gz
+       CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${SFML_INSTALL_PREFIX})
 
-add_custom_target(installSFGUI
-  COMMAND ${CMAKE_COMMAND} -DMAKE_PROGRAM=${CMAKE_MAKE_PROGRAM} -DTMPDIR=${TMPDIR} -DSFML_MAKEFILE_GENERATOR=${CMAKE_GENERATOR} -DBUILD_SFML_DOC=${BUILD_SFML_DOC} -DBUILD_SFML_DEBUG_LIBS=${BUILD_SFML_DEBUG_LIBS} -DNUM_CORES=${NUM_CORES} -DSFML_INSTALL_PREFIX=${SFML_INSTALL_PREFIX} -DCMAKE_MODULE_PATH=${CMAKE_MODULE_PATH} -DSFGUI_INSTALL_PREFIX=${SFGUI_INSTALL_PREFIX} -DWINDOWS=${WINDOWS} -DLINUX=${LINUX} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake/installSFGUI.cmake
-  DEPENDS installSFML
-  COMMENT "Installing SFGUI"
-)
+ExternalProject_Add(
+    SFML_dbg
+       DEPENDS SFML
+       PREFIX ${TMPDIR}
+       SOURCE_DIR ${TMPDIR}/src/SFML
+       DOWNLOAD_COMMAND "" # necessary to persuade CMake to accept ${TMPDIR}/src/SFML as source directory.
+       CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${SFML_INSTALL_PREFIX} -DCMAKE_BUILD_TYPE:STRING=Debug -DSFML_BUILD_DOC:BOOL=TRUE)
+
+ExternalProject_Add(
+    SFGUI
+       DEPENDS SFML
+       PREFIX ${TMPDIR}
+       DOWNLOAD_COMMAND git clone git://boxbox.org/SFGUI.git ${TMPDIR}/src/SFGUI # Custom download command to avoid downloading the SFML-submodule referenced by SFGUI.
+       CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${SFGUI_INSTALL_PREFIX} -DCMAKE_MODULE_PATH=${FINDSFML_DIR} -DSFML_ROOT=${SFML_INSTALL_PREFIX} -DSFGUI_BUILD_EXAMPLES=FALSE})
+
+ExternalProject_Add(
+    SFGUI_dbg
+       DEPENDS SFGUI SFML_dbg
+       PREFIX ${TMPDIR}
+       SOURCE_DIR ${TMPDIR}/src/SFGUI
+       DOWNLOAD_COMMAND ""
+       CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${SFGUI_INSTALL_PREFIX} -DCMAKE_MODULE_PATH=${FINDSFML_DIR} -DSFML_ROOT=${SFML_INSTALL_PREFIX} -DCMAKE_BUILD_TYPE:STRING=Debug -DSFGUI_BUILD_DOC:BOOL=TRUE)
+
+ExternalProject_Add(
+   Thor
+      DEPENDS SFML
+      PREFIX ${TMPDIR}
+      URL https://github.com/Bromeon/Thor/archive/master.zip
+      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${THOR_INSTALL_PREFIX} -DSFML_ROOT=${SFML_INSTALL_PREFIX})
+
+ExternalProject_Add(
+   Thor_dbg
+      DEPENDS Thor SFML_dbg 
+      PREFIX ${TMPDIR}
+      SOURCE_DIR ${TMPDIR}/src/Thor
+      DOWNLOAD_COMMAND ""
+      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${THOR_INSTALL_PREFIX} -DSFML_ROOT=${SFML_INSTALL_PREFIX} -DCMAKE_BUILD_TYPE=Debug -DTHOR_BUILD_DOC=TRUE)
 
 add_custom_target(installDependencies
-                  DEPENDS installSFML installThor installSFGUI)
+   DEPENDS SFML SFML_dbg SFGUI SFGUI_dbg Thor Thor_dbg)
+
+      
+
+# SFGUI does not provide a FindSFML.cmake on its own. Luckily, SFML places one of those it its installation directory.
+#External
+#DSFGUI_BUILD_EXAMPLES=FALSE -DSFML_INCLUDE_DIR=${SFML_INSTALL_PREFIX}/include -DCMAKE_INSTALL_PREFIX=${SFGUI_INSTALL_PREFIX} -DSFML_ROOT=${SFML_INSTALL_PREFIX}
 
 set(SFML_ROOT ${SFML_INSTALL_PREFIX})
 set(CMAKE_PREFIX_PATH ${SFML_INSTALL_PREFIX})
@@ -90,5 +131,6 @@ find_package(SFML 2 COMPONENTS system)
 if(NOT SFML_FOUND)
   message(WARNING "No SFML found. Run: `make installDependencies` and reconfigure the project afterwards.")
 else()
-  add_subdirectory(src)
+  message(STATUS "Adding src.")
+#  add_subdirectory(src)
 endif()
