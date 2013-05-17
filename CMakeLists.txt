@@ -71,7 +71,7 @@ endif()
 ExternalProject_Add(
     SFML
        PREFIX ${TMPDIR}
-       URL http://github.com/LaurentGomila/SFML/archive/2.0.tar.gz
+       URL https://github.com/LaurentGomila/SFML/archive/2.0.zip
        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${SFML_INSTALL_PREFIX})
 
 ExternalProject_Add(
