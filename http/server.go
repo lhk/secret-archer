@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"http/vector2"
 	"log"
 	"net/http"
 	"runtime"
 	"sync"
 	"time"
+	"vector2"
 )
 
 // types, structs and methods to handle the gameObejcts
@@ -27,7 +27,7 @@ type Id int
 type ClientId int
 
 type GameObject interface {
-	Update(deltaTime float32, requests chan Message)
+	Update(deltaTime float32, gameObjects []GameObject, requests chan Message)
 	GetTag() Tag
 	GetId() Id
 	GetClientId() ClientId
@@ -81,15 +81,31 @@ type Robot struct {
 	GameObjectData
 }
 
-func (robot *Robot) Update(deltaTime float32, messages chan Message) {
+func (robot *Robot) Update(deltaTime float32, gameObjects []GameObject, messages chan Message) {
 	//update-logic of a robot
+	enemies := make([]GameObject, 0, 1000)
+	for _, suspect := range gameObjects {
+		if suspect.GetClientId() != robot.GetClientId() {
+			enemies[len(enemies)] = suspect
+		}
+	}
+
+	//so far the robot only moves towards the first enemy
+	if len(enemies) > 0 {
+		enemy := enemies[0]
+		target := enemy.GetPos()
+		fmt.Println(target)
+		diff := vector2.Sub(target, robot.GetPos())
+		diff.Normalize()
+	}
+
 }
 
 type Factory struct {
 	GameObjectData
 }
 
-func (factory *Factory) Update(deltaTime float32, messages chan Message) {
+func (factory *Factory) Update(deltaTime float32, gameObjects []GameObject, messages chan Message) {
 	//update-logic of a factory
 }
 
@@ -146,7 +162,7 @@ func (game *Game) Update() {
 			// defers the decrementation of the WaitGroup counter
 			// till the function is finished
 			defer wg.Done()
-			gameObject.Update(deltaTime, game.Requests)
+			gameObject.Update(deltaTime, game.GameObjects, game.Requests)
 		}()
 	}
 	// this call to wg.Wait() blocks till the counter is back at 0
@@ -154,21 +170,75 @@ func (game *Game) Update() {
 
 	// the request channel has been filled with messages
 	// got to empty it
-	for message := range game.Requests {
-		fmt.Println("processing a message from the games request channel")
-		// let's take a look at the contents of the message
-		clientId := message.ClientId
-		id := message.Id
-		tag := message.Tag
-		what := message.What
-		x := message.X
-		y := message.Y
-		fmt.Println(clientId, id, tag, what, x, y)
-		// process the message
 
-		// distribute the message
-		game.Network.Distribute(message)
+	for {
+		stop := false
+		select {
+		case message := <-game.Requests:
+			// process the request
+			fmt.Println("processing a message from the games request channel")
+			// let's take a look at the contents of the message
+			clientId := message.ClientId
+			id := message.Id
+			tag := message.Tag
+			what := message.What
+			x := message.X
+			y := message.Y
+			fmt.Println(clientId, id, tag, what, x, y)
+			// process the message
 
+			switch what {
+			case Spawn:
+				// create a new object
+				switch tag {
+				case FactoryTag:
+					factory := new(Factory)
+					factory.SetClientId(clientId)
+					factory.SetId(Id(len(game.GameObjects)))
+					factory.SetTag(FactoryTag)
+					factory.SetPos(vector2.Vector2{x, y})
+					game.GameObjects = append(game.GameObjects, factory)
+
+				case RobotTag:
+					robot := new(Robot)
+					robot.SetClientId(clientId)
+					robot.SetId(Id(len(game.GameObjects)))
+					robot.SetTag(RobotTag)
+					robot.SetPos(vector2.Vector2{x, y})
+					game.GameObjects = append(game.GameObjects, robot)
+
+				case MineTag:
+					log.Fatal("mines are not implemented yet")
+				}
+			case Move:
+				if tag != RobotTag {
+					log.Fatal("someone tried to move a factory or a mine")
+				}
+				for _, suspect := range game.GameObjects {
+					if suspect.GetTag() == RobotTag &&
+						suspect.GetId() == id &&
+						suspect.GetClientId() == clientId {
+						fmt.Println("got him, this is the right suspect", suspect)
+						suspect.SetPos(vector2.Vector2{x, y})
+						break
+					}
+				}
+			case Attack:
+				log.Fatal("attacks are not implemented yet")
+
+			case Destroy:
+				log.Fatal("destruction is not implemented yet")
+
+			}
+
+			// distribute the message
+			game.Network.Distribute(message)
+		default:
+			stop = true
+		}
+		if stop {
+			break
+		}
 	}
 }
 
