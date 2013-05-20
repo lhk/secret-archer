@@ -24,6 +24,7 @@ set(NUM_CORES 4 CACHE INTEGER "Number of cores on your machine.")
 set(SFML_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/extlibs/SFML" CACHE STRING "Directory to which SFML will be installed.")
 set(THOR_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/extlibs/Thor" CACHE STRING "Directory to which Thor will be installed.")
 set(SFGUI_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/extlibs/SFGUI" CACHE STRING "Directory to which SFGUI will be installed.")
+set(BOOST_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/extlibs/Boost" CACHE STRING "Directory to which Boost will be installed.")
 
 message(WARNING "Please set NUM_CORES according to your needs. NUM_CORES is 4 by default.")
 #OS-specific variables.
@@ -112,14 +113,37 @@ ExternalProject_Add(
       DOWNLOAD_COMMAND ""
       CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${THOR_INSTALL_PREFIX} -DSFML_ROOT=${SFML_INSTALL_PREFIX} -DCMAKE_BUILD_TYPE=Debug -DTHOR_BUILD_DOC=TRUE)
 
+# For Boost, the download size for zip and tar.gz differs by ~30MB (with tar.gz being smaller). For Linux, we use tar.gz, for windows we must use zip yet.
+set(BOOST_PATH ${TMPDIR}/src/Boost)
+if(LINUX)
+  set(BOOST_DOWNLOAD_URI http://downloads.sourceforge.net/boost/boost_1_53_0.tar.bz2)
+  set(BOOTSTRAP_SCRIPT bootstrap.sh)
+elseif(WINDOWS)
+  set(BOOST_DOWNLOAD_URI http://downloads.sourceforge.net/boost/boost_1_53_0.zip)
+  set(BOOTSTRAP_SCRIPT bootstrap.bat)
+endif()
+
+# From the boost libraries, we need:
+# * shared_ptr (in smart_ptr, header only)
+
+ExternalProject_Add(
+  Boost
+     PREFIX ${TMPDIR}
+     URL ${BOOST_DOWNLOAD_URI}
+     CONFIGURE_COMMAND "" # Boost cannot be automatically configured as it is neither using cmake nor configure.
+     UPDATE_COMMAND cd ${BOOST_PATH}  && ./${BOOTSTRAP_SCRIPT}                                                         # builds b2/bjam in BOOST_ROOT.
+     BUILD_COMMAND cd ${BOOST_PATH}   && ./bjam -j${NUM_CORES} tools/bcp                                               # builds bcp
+     INSTALL_COMMAND cd ${BOOST_PATH} && ./dist/bin/bcp --boost=${TMPDIR}/src/Boost smart_ptr ${BOOST_INSTALL_PREFIX}) # copies smart_ptr to extlibs/boost
+
+ExternalProject_Add_Step(
+  Boost createExtlibs
+     COMMAND ${CMAKE_COMMAND} -E make_directory ${BOOST_INSTALL_PREFIX}
+     COMMENT "Setting up directories"
+     DEPENDERS mkdir
+     ALWAYS TRUE)
+
 add_custom_target(installDependencies
-   DEPENDS SFML SFML_dbg SFGUI SFGUI_dbg Thor Thor_dbg)
-
-      
-
-# SFGUI does not provide a FindSFML.cmake on its own. Luckily, SFML places one of those it its installation directory.
-#External
-#DSFGUI_BUILD_EXAMPLES=FALSE -DSFML_INCLUDE_DIR=${SFML_INSTALL_PREFIX}/include -DCMAKE_INSTALL_PREFIX=${SFGUI_INSTALL_PREFIX} -DSFML_ROOT=${SFML_INSTALL_PREFIX}
+   DEPENDS SFML SFML_dbg SFGUI SFGUI_dbg Thor Thor_dbg Boost)
 
 set(SFML_ROOT ${SFML_INSTALL_PREFIX})
 set(CMAKE_PREFIX_PATH ${SFML_INSTALL_PREFIX})
