@@ -9,29 +9,33 @@ type Vector2 struct {
 	Y float64
 }
 
-func (v *Vector2) Add(b Vector2) {
+func (v *Vector2) Add(b Vector2) *Vector2 {
 	v.X += b.X
 	v.Y += b.Y
+	return v
 }
 
-func (v *Vector2) Sub(b Vector2) {
+func (v *Vector2) Sub(b Vector2) *Vector2 {
 	v.X += b.X
 	v.Y += b.Y
+	return v
 }
 
-func (v *Vector2) Scale(s float64) {
+func (v *Vector2) Scale(s float64) *Vector2 {
 	v.X *= s
 	v.Y *= s
+	return v
 }
 
 func (v *Vector2) Length() float64 {
 	return math.Sqrt(math.Pow(v.X, 2) + math.Pow(v.Y, 2))
 }
 
-func (v *Vector2) Normalize() {
+func (v *Vector2) Normalize() *Vector2 {
 	length := v.Length()
 	v.X /= length
 	v.Y /= length
+	return v
 }
 
 func Add(a, b Vector2) Vector2 {
@@ -53,4 +57,9 @@ func Length(v Vector2) float64 {
 func Normalize(v Vector2) Vector2 {
 	length := Length(v)
 	return Vector2{v.X / length, v.Y / length}
+}
+
+func Dist(a, b Vector2) float64 {
+	diff := Sub(a, b)
+	return Length(diff)
 }

@@ -27,7 +27,7 @@ type Id int
 type ClientId int
 
 type GameObject interface {
-	Update(deltaTime float32, gameObjects []GameObject, requests chan Message)
+	Update(deltaTime float64, gameObjects []GameObject, requests chan Message)
 	GetTag() Tag
 	GetId() Id
 	GetClientId() ClientId
@@ -81,8 +81,10 @@ type Robot struct {
 	GameObjectData
 }
 
-func (robot *Robot) Update(deltaTime float32, gameObjects []GameObject, messages chan Message) {
+func (robot *Robot) Update(deltaTime float64, gameObjects []GameObject, messages chan Message) {
 	//update-logic of a robot
+
+	//find all enemy gameObjects
 	enemies := make([]GameObject, 0, 1000)
 	for _, suspect := range gameObjects {
 		if suspect.GetClientId() != robot.GetClientId() {
@@ -90,23 +92,82 @@ func (robot *Robot) Update(deltaTime float32, gameObjects []GameObject, messages
 		}
 	}
 
-	//so far the robot only moves towards the first enemy
+	// find the closest enemy
 	if len(enemies) > 0 {
 		enemy := enemies[0]
+		dist := vector2.Dist(enemy.GetPos(), robot.GetPos())
+		for _, suspect := range enemies[1:] {
+			newdist := vector2.Dist(suspect.GetPos(), robot.GetPos())
+			if newdist < dist {
+				enemy = suspect
+				dist = newdist
+			}
+		}
+
+		// calculate the desired movement
+		// get the target position
 		target := enemy.GetPos()
 		fmt.Println(target)
-		diff := vector2.Sub(target, robot.GetPos())
-		diff.Normalize()
+		// this is the difference vector
+		move := vector2.Sub(target, robot.GetPos())
+		// but we must not "jump" at the target. scale the movement
+		// by the elapsed time. careful: do increase the length of the
+		// movement vector
+
+		if move.Length() > deltaTime {
+			move.Normalize().Scale(deltaTime)
+		}
+
+		// this is where the robot wants to be
+		stopAt := vector2.Add(robot.GetPos(), move)
+
+		//lets create a new message
+		var message Message
+		message.What = Move
+		message.Tag = RobotTag
+		message.Id = robot.GetId()
+		message.ClientId = robot.GetClientId()
+		message.X = stopAt.X
+		message.Y = stopAt.Y
+
+		// pass this to the game message channel
+		messages <- message
 	}
+
+	// no return statement needed
+	// all information is passed by the messages channel
 
 }
 
 type Factory struct {
 	GameObjectData
+	Delay float64
 }
 
-func (factory *Factory) Update(deltaTime float32, gameObjects []GameObject, messages chan Message) {
-	//update-logic of a factory
+func (factory *Factory) SetDelay(delay float64) {
+	factory.Delay = delay
+}
+
+func (factory *Factory) GetDelay() float64 {
+	return factory.Delay
+}
+
+func (factory *Factory) Update(deltaTime float64, gameObjects []GameObject, messages chan Message) {
+	factory.Delay += deltaTime
+	if factory.Delay > 3 {
+		// spawn a robot
+		factory.Delay = 0
+		var message Message
+		message.What = Spawn
+		message.Id = -1
+		message.Tag = RobotTag
+		message.ClientId = factory.GetClientId()
+		message.X = factory.GetPos().X
+		message.Y = factory.GetPos().Y
+
+		// send the message to the Game
+		messages <- message
+	}
 }
 
 //types, structs and methods to handle communication
@@ -150,7 +211,7 @@ type Game struct {
 func (game *Game) Update() {
 	// first: calculate the elapsed time
 	// time.Since returns deltaTime in nanoseconds. we want seconds
-	deltaTime := float32(time.Since(game.LastCall) / 1000000000)
+	deltaTime := float64(time.Since(game.LastCall) / 1000000000)
 	game.LastCall = time.Now()
 	// now create a WaitGroup
 	var wg sync.WaitGroup
@@ -170,9 +231,24 @@ func (game *Game) Update() {
 
 	// the request channel has been filled with messages
 	// got to empty it
-
 	for {
 		stop := false
+
+		// this is a little complicated
+		// we need to read all messages in the game's message channel
+		// it is possible to use range for that, but range in combination with channels is blocking
+		// if there are no new messages, we want to continue updating
+
+		// the solution is select
+		// inside of a select block, there are various cases
+		// like sending to a channel or reading from a channel
+		// sending to a full channel and reading from an empty channel would both block the execution if executed outside of a select statement
+		// inside of a select statement a blocking case is just marked as invalid
+		// if multiple channels are valid one is chosen randomly
+		// if none are valid, the default block is executed
+		// here we are using an infinite loop to read messages from the game's message channel
+		// if the channel is empty, we break out of the loop
+
 		select {
 		case message := <-game.Requests:
 			// process the request
@@ -185,8 +261,9 @@ func (game *Game) Update() {
 			x := message.X
 			y := message.Y
 			fmt.Println(clientId, id, tag, what, x, y)
-			// process the message
 
+			// process the message
+			// if we move the update logic for individual gameObjects to the client, we should check if the messages are valid
 			switch what {
 			case Spawn:
 				// create a new object
@@ -197,7 +274,11 @@ func (game *Game) Update() {
 					factory.SetId(Id(len(game.GameObjects)))
 					factory.SetTag(FactoryTag)
 					factory.SetPos(vector2.Vector2{x, y})
+					factory.SetDelay(0)
 					game.GameObjects = append(game.GameObjects, factory)
+
+					// do not forget to change the message id to the new value
+					message.Id = factory.GetId()
 
 				case RobotTag:
 					robot := new(Robot)
@@ -206,6 +287,8 @@ func (game *Game) Update() {
 					robot.SetTag(RobotTag)
 					robot.SetPos(vector2.Vector2{x, y})
 					game.GameObjects = append(game.GameObjects, robot)
+
+					message.Id = robot.GetId()
 
 				case MineTag:
 					log.Fatal("mines are not implemented yet")
