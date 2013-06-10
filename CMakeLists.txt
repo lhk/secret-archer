@@ -119,10 +119,10 @@ ExternalProject_Add(
 set(BOOST_PATH ${TMPDIR}/src/Boost)
 if(LINUX)
   set(BOOST_DOWNLOAD_URI http://downloads.sourceforge.net/boost/boost_1_53_0.tar.bz2)
-  set(BOOTSTRAP_SCRIPT bootstrap.sh)
+  set(BOOST_BOOTSTRAP_SCRIPT ./bootstrap.sh)
 elseif(WINDOWS)
   set(BOOST_DOWNLOAD_URI http://downloads.sourceforge.net/boost/boost_1_53_0.zip)
-  set(BOOTSTRAP_SCRIPT bootstrap.bat)
+  set(BOOST_BOOTSTRAP_SCRIPT bootstrap.bat)
 endif()
 
 # From the boost libraries, we need:
@@ -138,13 +138,13 @@ ExternalProject_Add(
      PREFIX ${TMPDIR}
      URL ${BOOST_DOWNLOAD_URI}
      CONFIGURE_COMMAND "" # Boost cannot be automatically configured as it is neither using cmake nor configure.
-     UPDATE_COMMAND cd ${BOOST_PATH}  && ./${BOOTSTRAP_SCRIPT}                                                         # builds b2/bjam in BOOST_ROOT.
-     BUILD_COMMAND cd ${BOOST_PATH}   && ./bjam -j${NUM_CORES} tools/bcp                                               # builds bcp
-     INSTALL_COMMAND cd ${BOOST_PATH} && ./dist/bin/bcp --boost=${TMPDIR}/src/Boost smart_ptr thread ${BOOST_INSTALL_PREFIX}) # copies smart_ptr to extlibs/boost
+     UPDATE_COMMAND cd ${BOOST_PATH}  && ${BOOST_BOOTSTRAP_SCRIPT}                                                         # builds b2/bjam in BOOST_ROOT.
+     BUILD_COMMAND cd ${BOOST_PATH}   && ${BOOST_PATH}/bjam -j${NUM_CORES} tools/bcp                                               # builds bcp
+     INSTALL_COMMAND cd ${BOOST_PATH} && ${BOOST_PATH}/dist/bin/bcp --boost=${TMPDIR}/src/Boost smart_ptr thread ${BOOST_INSTALL_PREFIX}) # copies smart_ptr to extlibs/boost
     
 ExternalProject_Add_Step(
   Boost installlibs
-     COMMAND ./bjam install -j${NUM_CORES} --prefix=${BOOST_INSTALL_PREFIX} --build-type=complete --layout=versioned --threading=multi --with-thread --with-chrono --with-date_time --with-test
+     COMMAND ${BOOST_PATH}/bjam install -j${NUM_CORES} --prefix=${BOOST_INSTALL_PREFIX} --build-type=complete --layout=versioned --threading=multi --with-thread --with-chrono --with-date_time --with-test
      COMMENT "Building libraries"
      WORKING_DIRECTORY ${BOOST_PATH}
      DEPENDEES install
