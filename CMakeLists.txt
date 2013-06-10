@@ -173,12 +173,11 @@ set(BOOST_ROOT ${BOOST_INSTALL_PREFIX})
 find_package(Boost COMPONENTS thread date_time chrono system) # required by `make client`
 find_package(Boost COMPONENTS unit_test_framework)            # required by `make test`
 
-include_directories(${SFML_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} client/src)
 
-
-if(NOT SFML_FOUND)
-  message(WARNING "No SFML found. Run: `make installDependencies` and reconfigure the project afterwards.")
+if(NOT SFML_FOUND OR NOT BOOST_FOUND)
+  message(WARNING "No SFML or Boost found. Run: `make installDependencies` and reconfigure the project afterwards.")
 else()
-  message(STATUS "Adding src.")
+  message(STATUS "Requirements are met. Adding src and setting include directories.")
+  include_directories(${SFML_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} client/src)
   add_subdirectory(client)
 endif()
