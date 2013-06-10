@@ -20,6 +20,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 set(BUILD_SFML_DOC 1 CACHE BOOL "True if you want to build the SFML documentation. ON by default.")
 set(BUILD_SFML_DEBUG_LIBS 1 CACHE BOOL "True if you want to build debug variants of the SFML libs, too. Release libraries are always built.")
 set(NUM_CORES 4 CACHE INTEGER "Number of cores on your machine.")
+set(BUILD_EXTERNALS 1 CACHE BOOL "True if you want cmake create targets that build SFML, SFGUI, Thor and Boost. ON by default.")
 
 set(SFML_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/extlibs/SFML" CACHE STRING "Directory to which SFML will be installed.")
 set(THOR_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/extlibs/Thor" CACHE STRING "Directory to which Thor will be installed.")
@@ -69,6 +70,7 @@ elseif(WINDOWS)
   set(FINDSFML_DIR ${SFML_INSTALL_PREFIX}/cmake/Modules)
 endif()
 
+if(${BUILD_EXTERNALS})
 ExternalProject_Add(
     SFML
        PREFIX ${TMPDIR}
@@ -125,6 +127,11 @@ endif()
 
 # From the boost libraries, we need:
 # * shared_ptr (in smart_ptr, header only)
+# * threads (in thread)
+#   thread requires the following libraries to be built:
+#   * chrono
+#   * datetime
+#   * system
 
 ExternalProject_Add(
   Boost
@@ -133,7 +140,15 @@ ExternalProject_Add(
      CONFIGURE_COMMAND "" # Boost cannot be automatically configured as it is neither using cmake nor configure.
      UPDATE_COMMAND cd ${BOOST_PATH}  && ./${BOOTSTRAP_SCRIPT}                                                         # builds b2/bjam in BOOST_ROOT.
      BUILD_COMMAND cd ${BOOST_PATH}   && ./bjam -j${NUM_CORES} tools/bcp                                               # builds bcp
-     INSTALL_COMMAND cd ${BOOST_PATH} && ./dist/bin/bcp --boost=${TMPDIR}/src/Boost smart_ptr ${BOOST_INSTALL_PREFIX}) # copies smart_ptr to extlibs/boost
+     INSTALL_COMMAND cd ${BOOST_PATH} && ./dist/bin/bcp --boost=${TMPDIR}/src/Boost smart_ptr thread ${BOOST_INSTALL_PREFIX}) # copies smart_ptr to extlibs/boost
+    
+ExternalProject_Add_Step(
+  Boost installlibs
+     COMMAND ./bjam install -j${NUM_CORES} --prefix=${BOOST_INSTALL_PREFIX} --build-type=complete --layout=versioned --threading=multi --with-thread --with-chrono --with-date_time --with-test
+     COMMENT "Building libraries"
+     WORKING_DIRECTORY ${BOOST_PATH}
+     DEPENDEES install
+)
 
 ExternalProject_Add_Step(
   Boost createExtlibs
@@ -147,10 +162,19 @@ add_custom_target(installDependencies
 
 set(SFML_ROOT ${SFML_INSTALL_PREFIX})
 set(CMAKE_PREFIX_PATH ${SFML_INSTALL_PREFIX})
+endif() # BUILD_EXTERNALS
 
 # Finding SFML must not abort cmake-configuration: Configuration is necessary to run `make installDependencies`.
 set(SFML_FIND_QUIETLY TRUE) 
-find_package(SFML 2 COMPONENTS system)
+find_package(SFML 2 COMPONENTS system network)
+
+set(BOOST_ROOT ${BOOST_INSTALL_PREFIX})
+# shared_ptr is header only and cannot be found by find_package. However, if Boost finds the specified libraries, shared_ptr will be available in the include directory.
+find_package(Boost COMPONENTS thread date_time chrono system) # required by `make client`
+find_package(Boost COMPONENTS unit_test_framework)            # required by `make test`
+
+include_directories(${SFML_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} client/src)
+
 
 if(NOT SFML_FOUND)
   message(WARNING "No SFML found. Run: `make installDependencies` and reconfigure the project afterwards.")
