@@ -174,7 +174,7 @@ find_package(Boost COMPONENTS thread date_time chrono system) # required by `mak
 find_package(Boost COMPONENTS unit_test_framework)            # required by `make test`
 
 
-if(NOT SFML_FOUND OR NOT BOOST_FOUND)
+if(NOT SFML_FOUND OR NOT Boost_FOUND)
   message(WARNING "No SFML or Boost found. Run: `make installDependencies` and reconfigure the project afterwards.")
 else()
   message(STATUS "Requirements are met. Adding src and setting include directories.")
