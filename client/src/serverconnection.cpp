@@ -20,13 +20,47 @@
 
 #include "serverconnection.h"
 
+#include "util/log.h"
+
+#include "version.h"
+
+#include <stdlib.h>
+
 void foo() {
 }
 using namespace boost;
 using namespace std;
+
 ServerConnection::ServerConnection(std::string host, unsigned short port)
     : http(host, port), messageSendingThread(&ServerConnection::flush, this), terminated(false)
 {
+    sf::Http::Request currentRequest;
+    currentRequest.setUri("hello");
+
+    sf::Http::Response response = http.sendRequest(currentRequest);
+    sf::Http::Response::Status status = response.getStatus();
+    // The answer from the secret archer server is a string of the form "sad <protocol number>".
+    switch (status)
+    {
+    case sf::Http::Response::Ok:
+    {
+        string body = response.getBody();
+        if(body.find("sad") != -1)
+        {
+            unsigned int protocolIDPos =  body.find_first_not_of("sad");
+            string protocolIDStr = body.substr(protocolIDPos);
+            int protocolID = atoi(protocolIDStr.c_str());
+            if(protocolID != version::protocolID)
+                throw "The client's version does not match the server's version";
+        }
+        else
+            throw "Received malformed handshake from server";
+        break;
+    }
+    case sf::Http::Response::ConnectionFailed:
+        throw "Cannot connect to server. Is the server running?";
+    }
+
 }
 
 void ServerConnection::send(Message msg)
@@ -48,10 +82,24 @@ void ServerConnection::flush() {
                 currentMessage = outgoingMessages.front();
                 outgoingMessages.pop();
             } // release outgoingMessagesMutex
-            sf::Http::Request currentRequest = sf::Http::Request();
+            sf::Http::Request currentRequest;
             currentRequest.setUri(MessageTypeToString(currentMessage.type));
 
-            http.sendRequest(currentRequest);
+            sf::Http::Response response =  http.sendRequest(currentRequest);
+            sf::Http::Response::Status status = response.getStatus();
+            int category = (int) trunc(status / 100);
+            switch(category)
+            {
+               // 2xx: success
+               case 2 : continue;
+               // 3xx: redirection
+               case 3 : Log::write("Got a 3xx response after a HTTP request."); break;
+               // 4xx: client error
+               case 4 : throw "Got a 4xx response after a HTTP request."; break;
+               // 5xx: server error
+               // Maybe we should retry on a server error?
+               case 5 : Log::write("Got a 5xx response after a HTTP request.");
+            }
         }
     }
 }
