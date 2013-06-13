@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"runtime"
+        "strconv"  
 	"sync"
 	"time"
 	"vector2"
@@ -22,6 +23,8 @@ const (
 	RobotTag
 	MineTag
 )
+
+const ProtocolVersion uint = 0 
 
 type Id int
 type ClientId int
@@ -447,6 +450,15 @@ func (network *Network) GetNews(
 
 }
 
+func (network *Network) Hello(
+	w http.ResponseWriter,
+	r *http.Request) {  
+  log.Println("Someone is trying to see whether we are a real secret-archer server. I'm telling him that we use the protocol", ProtocolVersion,".")
+  // sad= Secret Archer Daemon. And it's sad because it has so much work to do :-(
+  w.Write([]byte("sad " + strconv.Itoa(int(ProtocolVersion)) ))
+  // Im might make sense to add a challenge here.
+}
+
 func main() {
 	runtime.GOMAXPROCS(2)
 	log.Println("about to begin")
@@ -475,5 +487,7 @@ func main() {
 	http.HandleFunc("/request", network.Request)
 	http.HandleFunc("/update", network.GetNews)
 	http.HandleFunc("/join", network.Join)
+	http.HandleFunc("/hello", network.Hello)
+
 	log.Fatal(http.ListenAndServe("localhost:5000", nil))
 }
