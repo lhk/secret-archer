@@ -24,7 +24,7 @@ set(FORCE_EXTERNALS 0 CACHE BOOL "True if you want cmake to create targets that 
 
 # Finding SFML must not abort cmake-configuration: Configuration is necessary to run `make installDependencies`.
 set(SFML_FIND_QUIETLY TRUE) 
-find_package(SFML 2 COMPONENTS system network)
+find_package(SFML 2 COMPONENTS system window graphics network audio)
 
 # shared_ptr is header only and cannot be found by find_package. However, if Boost finds the specified libraries, shared_ptr will be available in the include directory.
 find_package(Boost COMPONENTS thread date_time chrono system) # required by `make client`
