@@ -106,7 +106,6 @@ void ServerConnection::flush() {
             currentRequest.setUri(MessageTypeToString(currentMessage.type));
 
             sf::Http::Response response =  http.sendRequest(currentRequest);
-            cout << response.getBody() << endl;
             sf::Http::Response::Status status = response.getStatus();
             int category = (int) (status / 100);
             switch(category)
