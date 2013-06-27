@@ -25,6 +25,8 @@
 #include <queue>
 
 #include <SFML/Network.hpp>
+#include <SFML/System.h>
+
 #include <boost/thread.hpp>
 
 enum MessageType {SPAWN, JOIN};
@@ -68,8 +70,9 @@ private:
     
     bool terminated;
     sf::Http http;
-    boost::thread messageSendingThread;
+    sf::Thread messageSendingThread;
     
+    boost::condition_variable newMessagesNotifier;
     boost::mutex outgoingMessagesMutex;
     std::queue<Message> outgoingMessages;
     std::queue<Message> incomingMessages;

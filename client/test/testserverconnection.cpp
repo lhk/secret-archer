@@ -5,6 +5,7 @@
 
 #include <boost/date_time.hpp>
 
+#include <boost/chrono.hpp>
 #include <iostream>
 #include <vector>
 
@@ -14,7 +15,7 @@ BOOST_AUTO_TEST_SUITE( serverconnection_test)
 
 BOOST_AUTO_TEST_CASE( constructor_test)
 {
-   BOOST_CHECK_NO_THROW( ServerConnection conn("127.0.0.1", 5000) );
+   BOOST_REQUIRE_NO_THROW( ServerConnection conn("127.0.0.1", 5000) );
 }
 
 BOOST_AUTO_TEST_SUITE_END()

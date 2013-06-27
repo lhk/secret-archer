@@ -33,9 +33,11 @@ void foo() {
 using namespace boost;
 using namespace std;
 
+//Es wird manchmal ein SIGSEV geworfen. Auf den Thread warten, bevor die Exception ausgelöst wird (Hilfsfunktion)?
 ServerConnection::ServerConnection(std::string host, unsigned short port)
     : http(host, port), messageSendingThread(&ServerConnection::flush, this), terminated(false)
 {
+    messageSendingThread.launch();
     sf::Http::Request currentRequest;
     currentRequest.setUri("hello");
 
@@ -62,45 +64,68 @@ ServerConnection::ServerConnection(std::string host, unsigned short port)
     case sf::Http::Response::ConnectionFailed:
         throw Error("Cannot connect to server. Is the server running?");
     }
-
 }
 
 void ServerConnection::send(Message msg)
 {
-    lock_guard<mutex> lock(outgoingMessagesMutex);
+    unique_lock<mutex> lock(outgoingMessagesMutex);
     outgoingMessages.push(msg);
+    newMessagesNotifier.notify_one();
 }
 
 void ServerConnection::flush() {
+    mutex waitMtx;
+    unique_lock<mutex> waitLock(waitMtx);
     while(!terminated)
     {
+        // wake up at least every 200 milliseconds, in case notify_one() was called before timed_wait().
+        // In this case, this thread would wait forever and the message would not be sent.
+        boost::system_time const timeout=boost::get_system_time()+ boost::posix_time::milliseconds(200);
+        newMessagesNotifier.timed_wait(waitLock, timeout);
+        if(outgoingMessages.empty())
+        {
+            if(terminated)
+                return;
+            else
+                continue;
+        }
+
+        // Pump out every message in the queue.
         // The lock is reacquired before each message is sent: send shall never block for too long and it surely would if
         // the whole queue was sent before the lock is released.
+        // By releasing the lock so often, it is made sure that calls to ServerConnection::send() do not block for too long.
         while(!outgoingMessages.empty())
         {
-            Message currentMessage(SPAWN);// just initialize with something
+            Message currentMessage(SPAWN);
             {
-                lock_guard<mutex> lock(outgoingMessagesMutex);
+                lock_guard<mutex> outgoingMessagesMutexLock(outgoingMessagesMutex);
                 currentMessage = outgoingMessages.front();
                 outgoingMessages.pop();
-            } // release outgoingMessagesMutex
+            } // release the lock. Only the message taking must be synchronized, not the actual message sending.
             sf::Http::Request currentRequest;
             currentRequest.setUri(MessageTypeToString(currentMessage.type));
 
             sf::Http::Response response =  http.sendRequest(currentRequest);
+            cout << response.getBody() << endl;
             sf::Http::Response::Status status = response.getStatus();
-            int category = (int) trunc(status / 100);
+            int category = (int) (status / 100);
             switch(category)
             {
-               // 2xx: success
-               case 2 : continue;
-               // 3xx: redirection
-               case 3 : Log::write("Got a 3xx response after a HTTP request."); break;
-               // 4xx: client error
-               case 4 : throw "Got a 4xx response after a HTTP request."; break;
-               // 5xx: server error
-               // Maybe we should retry on a server error?
-               case 5 : Log::write("Got a 5xx response after a HTTP request.");
+            // 2xx: success
+            case 2 :
+                continue;
+            // 3xx: redirection
+            case 3 :
+                Log::write("Got a 3xx response after a HTTP request.");
+                break;
+            // 4xx: client error
+            case 4 :
+                throw "Got a 4xx response after a HTTP request.";
+                break;
+            // 5xx: server error
+            // Maybe we should retry on a server error?
+            case 5 :
+                Log::write("Got a 5xx response after a HTTP request.");
             }
         }
     }
@@ -109,5 +134,7 @@ void ServerConnection::flush() {
 ServerConnection::~ServerConnection()
 {
     terminated = true;
-    messageSendingThread.join();
+    // If the thread is waiting for new messages, it must be woken up.
+    newMessagesNotifier.notify_one();
+    messageSendingThread.wait();
 }
