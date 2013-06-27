@@ -21,10 +21,12 @@
 #include "serverconnection.h"
 
 #include "util/log.h"
+#include "util/error.h"
 
 #include "version.h"
 
 #include <stdlib.h>
+#include <exception>
 
 void foo() {
 }
@@ -51,14 +53,14 @@ ServerConnection::ServerConnection(std::string host, unsigned short port)
             string protocolIDStr = body.substr(protocolIDPos);
             int protocolID = atoi(protocolIDStr.c_str());
             if(protocolID != version::protocolID)
-                throw "The client's version does not match the server's version";
+                throw Error("The client's version does not match the server's version");
         }
         else
-            throw "Received malformed handshake from server";
+            throw Error("Received malformed handshake from server");
         break;
     }
     case sf::Http::Response::ConnectionFailed:
-        throw "Cannot connect to server. Is the server running?";
+        throw Error("Cannot connect to server. Is the server running?");
     }
 
 }
@@ -69,7 +71,7 @@ void ServerConnection::send(Message msg)
     outgoingMessages.push(msg);
 }
 
-void ServerConnection::flush() {  
+void ServerConnection::flush() {
     while(!terminated)
     {
         // The lock is reacquired before each message is sent: send shall never block for too long and it surely would if

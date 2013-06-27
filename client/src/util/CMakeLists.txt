@@ -1,1 +1,1 @@
-add_library(util STATIC log.cpp)
+add_library(util STATIC log.cpp error.cpp)
