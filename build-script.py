@@ -53,6 +53,9 @@ cores = 0
 # the machine's operating system.
 os = OS.NotSupported
 
+# true if built in source, false if built in bin-directory
+buildInSource = None
+
 # helpers
 def die(msg):
     print(OutputColor.RED+msg)
@@ -94,12 +97,21 @@ def installDeb(packages):
             die("   Could not install build dep of {}. Please install manually.".format(pkg))
     
 def cmake_configure():
-    global cores
+    global cores, buildInSource
     cmake_arguments = []
     make_targets = []
     
     cmake_arguments.append("-DNUM_CORES={}".format(cores))
-    
+ 
+# currently hardcoded in the root-CMakeLists.txt   
+#    if buildInSource == None:
+#        buildInSource = yes_no_prompt("Do you want an in-source-build (not recommended)?", 'y', 'n')
+#    if buildInSource:
+#        os.chdir("bin")
+#        result = call(["cmake", ".."], stdout=subprocess.DEVNULL, stderr=errlog)
+#        if result != 0:
+#            die("Could not run cmake. Please run cmake manually: `cmake ..`")
+
     for lib in libraries.values():
         # Specify the path to the library if it does not need to be installed.
         if not lib.needsInstallation:
@@ -228,7 +240,7 @@ def detectCores():
 
 def yes_no_prompt(prompt, y, n):
     while True:
-        answer = input("{} (y/n):".format(prompt))
+        answer = input("{} ({}/{}):".format(prompt, y, n))
         if answer == y:
             return True
         elif answer == n:
