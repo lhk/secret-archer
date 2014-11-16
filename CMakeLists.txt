@@ -15,6 +15,7 @@ else()
   message(FATAL_ERROR "OS is not supported. Cannot continue.")
 endif()
 
+set(CMAKE_CXX_FLAGS "-std=c++11")
 # set output directories
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -28,8 +29,8 @@ set(NUM_CORES 4 CACHE INTEGER "Number of cores on your machine.")
 set(FORCE_EXTERNALS 0 CACHE BOOL "True if you want cmake to create targets that build SFML, SFGUI, Thor and Boost even if those are already installed. OFF by default.")
 
 # Finding SFML must not abort cmake-configuration: Configuration is necessary to run `make installDependencies`.
-set(SFML_FIND_QUIETLY TRUE) 
-find_package(SFML 2 COMPONENTS system network)
+set(SFML_FIND_QUIETLY TRUE)
+find_package(SFML 2 COMPONENTS audio graphics network window system)
 
 # shared_ptr is header only and cannot be found by find_package. However, if Boost finds the specified libraries, shared_ptr will be available in the include directory.
 find_package(Boost COMPONENTS thread date_time chrono system) # required by `make client`
@@ -40,7 +41,7 @@ if(NOT SFML_FOUND OR NOT Boost_FOUND OR FORCE_EXTERNALS)
   if(LINUX)
     set(_TMPDIR "/tmp")
   elseif(WINDOWS)
-    set(_TMPDIR "C:/Windows/Temp") 
+    set(_TMPDIR "C:/Windows/Temp")
   endif()
   set(TMPDIR ${_TMPDIR} CACHE PATH "Folder for temporary files")
   # Create tmpdir if is doesn't exist. Abort when it is a file.
@@ -116,7 +117,7 @@ if(NOT Boost_FOUND OR FORCE_EXTERNALS)
      UPDATE_COMMAND cd ${BOOST_PATH}  && ${BOOST_BOOTSTRAP_SCRIPT}                                                         # builds b2/bjam in BOOST_ROOT.
      BUILD_COMMAND cd ${BOOST_PATH}   && ${BOOST_PATH}/bjam -j${NUM_CORES} tools/bcp                                               # builds bcp
      INSTALL_COMMAND cd ${BOOST_PATH} && ${BOOST_PATH}/dist/bin/bcp --boost=${TMPDIR}/src/Boost smart_ptr thread ${BOOST_INSTALL_PREFIX}) # copies smart_ptr to extlibs/boost
-    
+
   ExternalProject_Add_Step(
     Boost installlibs
      COMMAND ${BOOST_PATH}/bjam install -j${NUM_CORES} --prefix=${BOOST_INSTALL_PREFIX} --build-type=complete --layout=versioned --threading=multi --with-thread --with-chrono --with-date_time --with-test
@@ -162,7 +163,7 @@ ExternalProject_Add(
 
 ExternalProject_Add(
    Thor_dbg
-      DEPENDS Thor SFML_dbg 
+      DEPENDS Thor SFML_dbg
       PREFIX ${TMPDIR}
       SOURCE_DIR ${TMPDIR}/src/Thor
       DOWNLOAD_COMMAND ""
@@ -171,3 +172,9 @@ endif()
 
 message(WARNING "Please set NUM_CORES according to your needs. NUM_CORES is 4 by default.")
 
+
+add_custom_command(TARGET client PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_BINARY_DIR}/res"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${PROJECT_SOURCE_DIR}/res"
+        "${PROJECT_BINARY_DIR}/res")
