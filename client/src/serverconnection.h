@@ -25,7 +25,7 @@
 #include <queue>
 
 #include <SFML/Network.hpp>
-#include <SFML/System.h>
+#include <SFML/System.hpp>
 
 #include <boost/thread.hpp>
 
