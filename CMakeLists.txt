@@ -27,8 +27,8 @@ set(SFML_FIND_QUIETLY TRUE)
 find_package(SFML 2 COMPONENTS system network)
 
 # shared_ptr is header only and cannot be found by find_package. However, if Boost finds the specified libraries, shared_ptr will be available in the include directory.
-find_package(Boost COMPONENTS thread date_time chrono system) # required by `make client`
-find_package(Boost COMPONENTS unit_test_framework)            # required by `make test`
+find_package(Boost COMPONENTS thread date_time chrono system  # required by `make client`
+                              unit_test_framework)            # required by `make test`
 
 if(NOT SFML_FOUND OR NOT Boost_FOUND OR FORCE_EXTERNALS)
   # At least one dependency is missing. We need a temporary folder to download it.
